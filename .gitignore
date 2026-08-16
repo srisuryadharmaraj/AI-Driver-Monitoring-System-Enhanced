@@ -1,0 +1,44 @@
+# ── Python ────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# ── Virtual environment ──────────────────────────
+.venv/
+venv/
+env/
+
+# ── Node / Client ────────────────────────────────
+client/node_modules/
+client/dist/
+client/.vite/
+
+# ── IDE ───────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── OS ────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Runtime / Generated ──────────────────────────
+server/uploads/*
+!server/uploads/.gitkeep
+server/outputs/plates/*
+!server/outputs/plates/.gitkeep
+server/outputs/overspeed_log.csv
+
+# ── Models (large binary files) ──────────────────
+# Uncomment below if you do NOT want to track models in git:
+# server/models/
+
+# ── Dataset / Training Videos ─────────────────────
+videos/Data sets/
