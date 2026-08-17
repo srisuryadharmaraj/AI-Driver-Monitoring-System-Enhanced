@@ -1,42 +1,23 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import TopBar from '../components/TopBar'
+import ActiveDriverSelector from '../components/ActiveDriverSelector'
+import DriverAvatar from '../components/DriverAvatar'
+import { useDriver } from '../context/DriverContext'
 import { Cpu, Eye, AlertTriangle, Route, ShieldCheck, RefreshCw, Activity, Award } from 'lucide-react'
 
 export default function DigitalTwinPage() {
-  const [drivers, setDrivers] = useState([])
-  const [selectedId, setSelectedId] = useState('')
-  const [driver, setDriver] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { activeDriverDetail, loading } = useDriver()
 
-  useEffect(() => {
-    fetch('/api/drivers')
-      .then(r => r.json())
-      .then(data => {
-        setDrivers(data || [])
-        if (data && data.length > 0) {
-          setSelectedId(data[0].driver_id)
-        }
-      })
-  }, [])
-
-  useEffect(() => {
-    if (!selectedId) return
-    setLoading(true)
-    fetch(`/api/drivers/${selectedId}`)
-      .then(r => r.json())
-      .then(data => {
-        setDriver(data)
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
-  }, [selectedId])
-
+  const driver = activeDriverDetail || {}
   const twin = driver?.digital_twin || {}
+  const summary = driver?.telemetry_summary || {}
+
   const attention = Math.round(twin.attention_score || 90)
   const fatigue = Math.round(twin.fatigue_score || 85)
   const lane = Math.round(twin.lane_score || 88)
   const consistency = Math.round(twin.consistency_score || 87)
   const skillLevel = twin.skill_level || 'Advanced'
+  const safetyScore = Math.round(summary.avg_safety_score ?? twin.historical_safety_score ?? 88)
 
   return (
     <div className="page-container">
@@ -45,19 +26,9 @@ export default function DigitalTwinPage() {
         subtitle="Evolving Behavioural & Safety Telemetry Profile Model"
       />
 
-      {/* Driver Selector Header */}
-      <div className="twin-selector-bar">
-        <label><Cpu size={18} color="#3b82f6" /> Select Driver Digital Profile:</label>
-        <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
-          {drivers.map(d => (
-            <option key={d.driver_id} value={d.driver_id}>
-              {d.full_name} ({d.driver_id}) — Score: {Math.round(d.digital_twin?.historical_safety_score || 85)}/100
-            </option>
-          ))}
-        </select>
-      </div>
+      <ActiveDriverSelector showDateFilter={true} className="mb-4" />
 
-      {loading || !driver ? (
+      {loading || !driver.driver_id ? (
         <div className="loading-container"><p>SYNCHRONIZING DIGITAL TWIN MODEL...</p></div>
       ) : (
         <>
@@ -84,10 +55,10 @@ export default function DigitalTwinPage() {
               <div className="central-core-orb">
                 <div className="core-pulse-ring"></div>
                 <div className="core-avatar-box">
-                  <img src={driver.profile_photo || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + driver.driver_id} alt="" />
+                  <DriverAvatar driver={driver} size={70} editable={true} />
                 </div>
                 <div className="core-score-text">
-                  <span className="core-score-num">{Math.round(twin.historical_safety_score || 88)}</span>
+                  <span className="core-score-num">{safetyScore}</span>
                   <span className="core-score-lbl">{skillLevel.toUpperCase()}</span>
                 </div>
               </div>

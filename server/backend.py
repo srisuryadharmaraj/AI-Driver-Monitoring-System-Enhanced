@@ -75,6 +75,9 @@ try:
 except Exception as _e:
     print(f"[Router Registration Warning] {_e}")
 
+# Mount uploads directory for static media & driver photos
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
+
 # Serve React build assets if they exist
 if CLIENT_BUILD.exists() and (CLIENT_BUILD / "assets").exists():
     app.mount("/assets", StaticFiles(directory=str(CLIENT_BUILD / "assets")), name="assets")

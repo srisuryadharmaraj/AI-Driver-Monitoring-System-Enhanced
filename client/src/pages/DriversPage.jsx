@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import TopBar from '../components/TopBar'
 import DriverCard from '../components/DriverCard'
+import ActiveDriverSelector from '../components/ActiveDriverSelector'
+import { useDriver } from '../context/DriverContext'
 import { Plus, Search, UserPlus, X, CheckCircle } from 'lucide-react'
 
 export default function DriversPage() {
+  const { drivers: contextDrivers, refreshDrivers } = useDriver()
   const [drivers, setDrivers] = useState([])
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
@@ -17,6 +20,12 @@ export default function DriversPage() {
     years_of_experience: 5,
   })
   const [msg, setMsg] = useState('')
+
+  useEffect(() => {
+    if (contextDrivers && contextDrivers.length > 0) {
+      setDrivers(contextDrivers)
+    }
+  }, [contextDrivers])
 
   const fetchDrivers = () => {
     fetch('/api/drivers')
@@ -69,6 +78,8 @@ export default function DriversPage() {
         title="DRIVER MANAGEMENT & INTELLIGENCE" 
         subtitle="Manage fleet driver profiles, licence telemetry, and driver skill credentials"
       />
+
+      <ActiveDriverSelector showDateFilter={true} className="mb-4" />
 
       {msg && (
         <div className="alert-banner" style={{ color: '#22c55e', borderColor: '#22c55e', background: 'rgba(34,197,94,0.1)' }}>

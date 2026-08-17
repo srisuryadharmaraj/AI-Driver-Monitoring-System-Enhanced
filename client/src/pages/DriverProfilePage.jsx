@@ -1,28 +1,55 @@
 import React, { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import TopBar from '../components/TopBar'
 import SkillRadarChart from '../components/SkillRadarChart'
 import SafetyScoreGauge from '../components/SafetyScoreGauge'
+import DriverAvatar from '../components/DriverAvatar'
+import DateRangeFilter from '../components/DateRangeFilter'
+import { useDriver } from '../context/DriverContext'
 import { Award, Shield, Eye, AlertTriangle, Route, ArrowLeft, CheckCircle2, AlertCircle, FileText } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 export default function DriverProfilePage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { dateRange, activeDriverDetail } = useDriver()
   const [driver, setDriver] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // Sync profile photo or detail changes from DriverContext
   useEffect(() => {
-    fetch(`/api/drivers/${id}`)
+    if (activeDriverDetail && activeDriverDetail.driver_id === id) {
+      setDriver(prev => prev ? { ...prev, profile_photo: activeDriverDetail.profile_photo } : activeDriverDetail)
+    }
+  }, [activeDriverDetail, id])
+
+  useEffect(() => {
+    let url = `/api/drivers/${id}`
+    const params = new URLSearchParams()
+    if (dateRange.preset === 'custom') {
+      if (dateRange.fromDate) params.append('start_date', dateRange.fromDate)
+      if (dateRange.toDate) params.append('end_date', dateRange.toDate)
+    } else if (dateRange.preset !== 'all') {
+      const days = dateRange.preset === '7d' ? 7 : dateRange.preset === '30d' ? 30 : 90
+      const end = new Date()
+      const start = new Date()
+      start.setDate(end.getDate() - days)
+      params.append('start_date', start.toISOString().split('T')[0])
+      params.append('end_date', end.toISOString().split('T')[0])
+    }
+    if (params.toString()) url += `?${params.toString()}`
+
+    setLoading(true)
+    fetch(url)
       .then(r => r.json())
       .then(data => {
         setDriver(data)
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [id])
+  }, [id, dateRange])
 
-  if (loading || !driver) {
+  if (loading || !driver || driver.detail) {
     return (
       <div className="page-container">
         <TopBar title="DRIVER INTELLIGENCE PROFILE" />
@@ -32,8 +59,9 @@ export default function DriverProfilePage() {
   }
 
   const twin = driver.digital_twin || {}
+  const summary = driver.telemetry_summary || {}
   const journeys = driver.journeys || []
-  const overallScore = Math.round(twin.historical_safety_score || 88)
+  const overallScore = Math.round(summary.avg_safety_score ?? twin.historical_safety_score ?? 88)
   const skillLevel = twin.skill_level || 'Advanced'
 
   const scoreData = {
@@ -59,17 +87,16 @@ export default function DriverProfilePage() {
         subtitle={`Driver ID: ${driver.driver_id} • Verified Performance Credentials`}
       />
 
-      <button className="btn btn-outline" style={{ marginBottom: '1rem' }} onClick={() => navigate('/drivers')}>
-        <ArrowLeft size={16} /> Back to All Drivers
-      </button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <button className="btn btn-outline" onClick={() => navigate('/drivers')}>
+          <ArrowLeft size={16} /> Back to All Drivers
+        </button>
+        <DateRangeFilter />
+      </div>
 
       {/* Profile Header */}
       <div className="profile-header-card">
-        <img 
-          src={driver.profile_photo || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + driver.driver_id} 
-          alt={driver.full_name}
-          className="profile-large-avatar"
-        />
+        <DriverAvatar driver={driver} size={84} editable={true} />
 
         <div className="profile-header-main">
           <div className="profile-badge-row">

@@ -1,42 +1,27 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useSearchParams } from 'react-router-dom'
 import TopBar from '../components/TopBar'
+import ActiveDriverSelector from '../components/ActiveDriverSelector'
+import DriverAvatar from '../components/DriverAvatar'
+import { useDriver } from '../context/DriverContext'
 import { Award, ShieldCheck, Printer, CheckCircle2, AlertCircle, FileText } from 'lucide-react'
 
 export default function DriverPassportPage() {
   const [searchParams] = useSearchParams()
   const driverIdParam = searchParams.get('driver_id')
+  const { activeDriverId, setActiveDriverId, activeDriverDetail, loading } = useDriver()
 
-  const [drivers, setDrivers] = useState([])
-  const [selectedId, setSelectedId] = useState('')
-  const [driver, setDriver] = useState(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch('/api/drivers')
-      .then(r => r.json())
-      .then(data => {
-        setDrivers(data || [])
-        if (data && data.length > 0) {
-          setSelectedId(driverIdParam || data[0].driver_id)
-        }
-      })
+  React.useEffect(() => {
+    if (driverIdParam && driverIdParam !== activeDriverId) {
+      setActiveDriverId(driverIdParam)
+    }
   }, [driverIdParam])
 
-  useEffect(() => {
-    if (!selectedId) return
-    setLoading(true)
-    fetch(`/api/drivers/${selectedId}`)
-      .then(r => r.json())
-      .then(data => {
-        setDriver(data)
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
-  }, [selectedId])
-
+  const driver = activeDriverDetail || {}
   const twin = driver?.digital_twin || {}
-  const overallScore = Math.round(twin.historical_safety_score || 88)
+  const summary = driver?.telemetry_summary || {}
+
+  const overallScore = Math.round(summary.avg_safety_score ?? twin.historical_safety_score ?? 88)
   const skillLevel = twin.skill_level || 'Advanced'
 
   const handlePrint = () => {
@@ -51,23 +36,16 @@ export default function DriverPassportPage() {
           subtitle="Verifiable Digital Performance Credential & Safety Certification"
         />
 
-        <div className="twin-selector-bar">
-          <label><FileText size={18} color="#3b82f6" /> Select Driver Credential:</label>
-          <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
-            {drivers.map(d => (
-              <option key={d.driver_id} value={d.driver_id}>
-                {d.full_name} ({d.driver_id})
-              </option>
-            ))}
-          </select>
+        <ActiveDriverSelector showDateFilter={true} className="mb-4" />
 
-          <button className="btn btn-primary" style={{ marginLeft: 'auto' }} onClick={handlePrint}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+          <button className="btn btn-primary" onClick={handlePrint}>
             <Printer size={18} /> Export / Print Passport PDF
           </button>
         </div>
       </div>
 
-      {loading || !driver ? (
+      {loading || !driver.driver_id ? (
         <div className="loading-container"><p>GENERATING VERIFIED PASSPORT CREDENTIAL...</p></div>
       ) : (
         <div className="passport-credential-card">
@@ -87,8 +65,8 @@ export default function DriverPassportPage() {
 
           <div className="passport-body">
             <div className="passport-photo-col">
-              <img src={driver.profile_photo || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + driver.driver_id} alt="" className="passport-photo" />
-              <div className="passport-level-tag">{skillLevel.toUpperCase()} DRIVER</div>
+              <DriverAvatar driver={driver} size={90} editable={true} />
+              <div className="passport-level-tag" style={{ marginTop: '0.75rem' }}>{skillLevel.toUpperCase()} DRIVER</div>
             </div>
 
             <div className="passport-details-col">
@@ -98,7 +76,7 @@ export default function DriverPassportPage() {
                 <div><span>Licence Number:</span> <strong>{driver.licence_number}</strong></div>
                 <div><span>Licence Type:</span> <strong>{driver.licence_type}</strong></div>
                 <div><span>Driving Experience:</span> <strong>{driver.years_of_experience} Years</strong></div>
-                <div><span>Journeys Analysed:</span> <strong>{twin.total_journeys || 0} Sessions</strong></div>
+                <div><span>Journeys Analysed:</span> <strong>{summary.total_journeys ?? twin.total_journeys ?? 0} Sessions</strong></div>
                 <div><span>Issuance Date:</span> <strong>{new Date().toLocaleDateString()}</strong></div>
               </div>
             </div>

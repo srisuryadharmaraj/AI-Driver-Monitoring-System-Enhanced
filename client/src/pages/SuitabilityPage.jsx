@@ -1,35 +1,26 @@
 import React, { useEffect, useState } from 'react'
 import TopBar from '../components/TopBar'
+import ActiveDriverSelector from '../components/ActiveDriverSelector'
+import DriverAvatar from '../components/DriverAvatar'
+import { useDriver } from '../context/DriverContext'
 import { Briefcase, ShieldCheck, AlertCircle, Award, CheckCircle2, FileText } from 'lucide-react'
 
 export default function SuitabilityPage() {
-  const [drivers, setDrivers] = useState([])
-  const [selectedId, setSelectedId] = useState('')
+  const { activeDriverId, activeDriver, activeDriverDetail } = useDriver()
   const [suitability, setSuitability] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/drivers')
-      .then(r => r.json())
-      .then(data => {
-        setDrivers(data || [])
-        if (data && data.length > 0) {
-          setSelectedId(data[0].driver_id)
-        }
-      })
-  }, [])
-
-  useEffect(() => {
-    if (!selectedId) return
+    if (!activeDriverId) return
     setLoading(true)
-    fetch(`/api/recruitment/suitability/${selectedId}`)
+    fetch(`/api/recruitment/suitability/${activeDriverId}`)
       .then(r => r.json())
       .then(data => {
         setSuitability(data)
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [selectedId])
+  }, [activeDriverId])
 
   return (
     <div className="page-container">
@@ -38,17 +29,7 @@ export default function SuitabilityPage() {
         subtitle="Organizational decision-support platform evaluating candidate driver safety & skill profiles"
       />
 
-      {/* Driver Selector Header */}
-      <div className="twin-selector-bar">
-        <label><Briefcase size={18} color="#3b82f6" /> Select Candidate Driver:</label>
-        <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
-          {drivers.map(d => (
-            <option key={d.driver_id} value={d.driver_id}>
-              {d.full_name} ({d.driver_id}) — Licence: {d.licence_number}
-            </option>
-          ))}
-        </select>
-      </div>
+      <ActiveDriverSelector showDateFilter={true} className="mb-4" />
 
       {loading || !suitability ? (
         <div className="loading-container"><p>EVALUATING CANDIDATE SUITABILITY PROFILE...</p></div>
@@ -56,8 +37,8 @@ export default function SuitabilityPage() {
         <>
           {/* Suitability Result Hero */}
           <div className="suitability-hero-card">
-            <div className="suitability-status-icon"><CheckCircle2 size={36} color="#22c55e" /></div>
-            <div className="suitability-info">
+            <DriverAvatar driver={activeDriverDetail || activeDriver} size={64} editable={true} />
+            <div className="suitability-info" style={{ marginLeft: '1rem' }}>
               <span className="suitability-tag">{suitability.recommendation_level}</span>
               <h3>SUITABILITY INDICATOR: {suitability.suitability_indicator.toUpperCase()}</h3>
               <p>Candidate: <strong>{suitability.full_name}</strong> • Licence: {suitability.licence_type} • Monitored Journeys: {suitability.total_journeys_analysed}</p>

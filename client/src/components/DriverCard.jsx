@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Award, Shield, Eye, AlertTriangle, Route } from 'lucide-react'
+import DriverAvatar from './DriverAvatar'
 
 export default function DriverCard({ driver }) {
   const navigate = useNavigate()
@@ -25,11 +26,9 @@ export default function DriverCard({ driver }) {
       onClick={() => navigate(`/driver/${driver.driver_id}`)}
     >
       <div className="driver-card-header">
-        <img 
-          src={driver.profile_photo || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + driver.driver_id} 
-          alt={driver.full_name}
-          className="driver-avatar"
-        />
+        <div onClick={(e) => e.stopPropagation()}>
+          <DriverAvatar driver={driver} size={54} editable={true} />
+        </div>
         <div className="driver-header-info">
           <div className="driver-id-badge">{driver.driver_id}</div>
           <h3 className="driver-name">{driver.full_name}</h3>

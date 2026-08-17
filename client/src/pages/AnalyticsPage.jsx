@@ -1,35 +1,26 @@
 import React, { useEffect, useState } from 'react'
 import TopBar from '../components/TopBar'
+import ActiveDriverSelector from '../components/ActiveDriverSelector'
+import { useDriver } from '../context/DriverContext'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { TrendingUp, BarChart2, PieChart as PieIcon, ShieldCheck } from 'lucide-react'
 
 export default function AnalyticsPage() {
-  const [drivers, setDrivers] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { drivers, activeDriverDetail, activeDriver } = useDriver()
+  const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    fetch('/api/drivers')
-      .then(r => r.json())
-      .then(data => {
-        setDrivers(data || [])
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
-  }, [])
+  const summary = activeDriverDetail?.telemetry_summary || {}
+  const twin = activeDriverDetail?.digital_twin || activeDriver?.digital_twin || {}
 
-  const scoreTrendData = [
-    { week: 'W1', score: 82 },
-    { week: 'W2', score: 85 },
-    { week: 'W3', score: 84 },
-    { week: 'W4', score: 89 },
-    { week: 'W5', score: 91 },
-  ]
+  const fatigueVal = summary.fatigue_events ?? 4
+  const distractionVal = summary.distraction_events ?? 8
+  const overspeedVal = summary.overspeed_events ?? 3
 
   const eventDistribution = [
-    { name: 'Fatigue Alerts', value: 4, color: '#ef4444' },
-    { name: 'Distraction Spikes', value: 8, color: '#f59e0b' },
+    { name: 'Fatigue Alerts', value: Math.max(1, fatigueVal), color: '#ef4444' },
+    { name: 'Distraction Spikes', value: Math.max(1, distractionVal), color: '#f59e0b' },
     { name: 'Lane Deviations', value: 5, color: '#8b5cf6' },
-    { name: 'Collision Warnings', value: 3, color: '#3b82f6' },
+    { name: 'Collision / Speed Warnings', value: Math.max(1, overspeedVal), color: '#3b82f6' },
   ]
 
   const driverScores = drivers.map(d => ({
@@ -38,12 +29,22 @@ export default function AnalyticsPage() {
     attention: Math.round(d.digital_twin?.attention_score || 85),
   }))
 
+  const scoreTrendData = [
+    { week: 'W1', score: Math.min(100, Math.max(60, Math.round((summary.avg_safety_score || twin.historical_safety_score || 85) - 6))) },
+    { week: 'W2', score: Math.min(100, Math.max(60, Math.round((summary.avg_safety_score || twin.historical_safety_score || 85) - 3))) },
+    { week: 'W3', score: Math.min(100, Math.max(60, Math.round((summary.avg_safety_score || twin.historical_safety_score || 85) - 1))) },
+    { week: 'W4', score: Math.min(100, Math.max(60, Math.round(summary.avg_safety_score || twin.historical_safety_score || 85))) },
+    { week: 'W5', score: Math.min(100, Math.max(60, Math.round((summary.avg_safety_score || twin.historical_safety_score || 85) + 2))) },
+  ]
+
   return (
     <div className="page-container">
       <TopBar 
         title="DRIVER PERFORMANCE ANALYTICS" 
         subtitle="Fleetwide Telemetry Trends, Safety Event Distributions & Skill Profiling"
       />
+
+      <ActiveDriverSelector showDateFilter={true} className="mb-4" />
 
       {loading ? (
         <div className="loading-container"><p>LOADING ANALYTICS DATA...</p></div>
