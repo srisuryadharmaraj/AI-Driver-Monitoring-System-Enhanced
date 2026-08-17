@@ -56,23 +56,56 @@ def get_command_center_summary():
     }
 
 @router.get("/coach/{driver_id}")
-def get_coach_recommendations(driver_id: str):
-    """Generate personalized rule-based AI Coach recommendations for a driver."""
+def get_coach_recommendations(driver_id: str, start_date: Optional[str] = None, end_date: Optional[str] = None):
+    """Generate personalized rule-based AI Coach recommendations and action plan for a driver."""
     driver = query_db("SELECT * FROM drivers WHERE driver_id = ?", (driver_id,), one=True)
     if not driver:
         raise HTTPException(status_code=404, detail="Driver not found")
         
     twin = DigitalTwinService.get_or_create_twin(driver_id)
-    insights = DrivingCoach.generate_recommendations(driver, twin)
+    
+    # Query date-filtered journeys for telemetry statistics
+    query_str = "SELECT * FROM journeys WHERE driver_id = ?"
+    params = [driver_id]
+    if start_date:
+        query_str += " AND date >= ?"
+        params.append(start_date)
+    if end_date:
+        query_str += " AND date <= ?"
+        params.append(end_date)
+    query_str += " ORDER BY date DESC"
+    
+    journeys = query_db(query_str, tuple(params))
+    
+    total_j = len(journeys)
+    fatigue_count = sum(j.get("fatigue_events", 0) for j in journeys)
+    distraction_count = sum(j.get("distraction_events", 0) for j in journeys)
+    overspeed_count = sum(j.get("overspeed_events", 0) for j in journeys)
+    
+    avg_score = round(sum(j.get("journey_safety_score", 100) for j in journeys) / total_j, 1) if total_j > 0 else twin.get("historical_safety_score", 85.0)
+    
+    telemetry_summary = {
+        "total_journeys": total_j,
+        "fatigue_events": fatigue_count,
+        "distraction_events": distraction_count,
+        "overspeed_events": overspeed_count,
+        "avg_safety_score": avg_score
+    }
+    
+    insights = DrivingCoach.generate_recommendations(driver, twin, telemetry_summary)
+    action_plan = DrivingCoach.generate_action_plan(driver, twin, telemetry_summary)
     
     return {
         "driver_id": driver_id,
         "driver_name": driver["full_name"],
-        "overall_score": twin["historical_safety_score"],
+        "profile_photo": driver.get("profile_photo"),
+        "overall_score": avg_score,
         "skill_level": twin["skill_level"],
-        "strengths": twin["strengths"],
-        "improvement_areas": twin["improvement_areas"],
-        "insights": insights
+        "strengths": twin.get("strengths", []),
+        "improvement_areas": twin.get("improvement_areas", []),
+        "telemetry_summary": telemetry_summary,
+        "insights": insights,
+        "action_plan": action_plan
     }
 
 @router.get("/leaderboard")
