@@ -1,10 +1,12 @@
 import React, { useState, useRef, useCallback } from 'react'
-import { Upload, Play, Loader2, AlertTriangle, ShieldAlert } from 'lucide-react'
+import { Upload, Play, Loader2, AlertTriangle, ShieldAlert, UserCheck } from 'lucide-react'
 import RiskGauge from './RiskGauge'
 import TimelineChart from './TimelineChart'
 import useAlarm from '../hooks/useAlarm'
+import { useDriver } from '../context/DriverContext'
 
 export default function UploadMode({ settings }) {
+  const { activeDriver, activeDriverId, refreshDrivers } = useDriver()
   const [file, setFile] = useState(null)
   const [videoUrl, setVideoUrl] = useState(null)
   const [status, setStatus] = useState('idle')
@@ -44,6 +46,13 @@ export default function UploadMode({ settings }) {
 
   const analyse = useCallback(async () => {
     if (!file) return
+
+    if (!activeDriverId || !activeDriver) {
+      setErrorMsg('Please select a driver before starting monitoring.')
+      setStatus('error')
+      return
+    }
+
     setStatus('uploading')
     setErrorMsg('')
 
@@ -57,7 +66,7 @@ export default function UploadMode({ settings }) {
       setStatus('processing')
       const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
       const host = window.location.host
-      const wsUrl = `${proto}://${host}/ws/process/${job_id}?speed_limit=${settings.speedLimit}&skip_frames=${settings.skipFrames}&ear_threshold=${settings.earThreshold}`
+      const wsUrl = `${proto}://${host}/ws/process/${job_id}?speed_limit=${settings.speedLimit}&skip_frames=${settings.skipFrames}&ear_threshold=${settings.earThreshold}&driver_id=${activeDriverId}`
       const ws = new WebSocket(wsUrl)
       wsRef.current = ws
 
@@ -73,6 +82,7 @@ export default function UploadMode({ settings }) {
         } else if (msg.type === 'summary') {
           setSummary(msg)
           setStatus('done')
+          if (refreshDrivers) refreshDrivers()
         } else if (msg.error) {
           setErrorMsg(msg.error)
           setStatus('error')
@@ -99,6 +109,29 @@ export default function UploadMode({ settings }) {
       <div className="page-header">
         <h1>📤 Upload Video Analysis</h1>
         <p>Upload a dashcam / cabin video and get a full behaviour, obstacle &amp; safety report.</p>
+      </div>
+
+      {/* Active Driver Badge */}
+      <div className="chart-card mb-4" style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderLeft: '4px solid #3b82f6' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <img 
+            src={activeDriver?.profile_photo || "https://api.dicebear.com/7.x/bottts/svg?seed=driver"} 
+            alt={activeDriver?.full_name} 
+            style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid #334155', objectFit: 'cover' }}
+          />
+          <div>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <UserCheck size={13} color="#3b82f6" /> MONITORING SESSION DRIVER
+            </div>
+            <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: '0.95rem' }}>
+              {activeDriver ? activeDriver.full_name : <span style={{ color: '#ef4444' }}>No Driver Selected</span>}
+              {activeDriver && <span style={{ fontSize: '0.78rem', color: '#64748b', marginLeft: '0.5rem', fontFamily: 'monospace' }}>({activeDriver.driver_id})</span>}
+            </div>
+          </div>
+        </div>
+        <span className={`badge ${activeDriver ? 'badge-info' : 'badge-danger'}`}>
+          {activeDriver ? activeDriver.licence_type || 'Commercial' : 'Action Required'}
+        </span>
       </div>
 
       {/* Upload Zone */}

@@ -88,12 +88,7 @@ def record_journey(payload: JourneyRecordCreate):
     # Check driver existence
     driver = query_db("SELECT * FROM drivers WHERE driver_id = ?", (payload.driver_id,), one=True)
     if not driver:
-        # Default to first driver if unspecified
-        first_driver = query_db("SELECT driver_id FROM drivers LIMIT 1", one=True)
-        if first_driver:
-            payload.driver_id = first_driver["driver_id"]
-        else:
-            raise HTTPException(status_code=404, detail="No registered driver found")
+        raise HTTPException(status_code=404, detail=f"Driver ID '{payload.driver_id}' not found")
 
     score_calc = SafetyScoreEngine.calculate_journey_score(
         fatigue_events=payload.fatigue_events,

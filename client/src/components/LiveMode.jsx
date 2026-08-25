@@ -1,10 +1,12 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import { Camera, Square, AlertTriangle, ShieldAlert, Activity } from 'lucide-react'
+import { Camera, Square, AlertTriangle, ShieldAlert, Activity, UserCheck } from 'lucide-react'
 import RiskGauge from './RiskGauge'
 import TimelineChart from './TimelineChart'
 import useAlarm from '../hooks/useAlarm'
+import { useDriver } from '../context/DriverContext'
 
 export default function LiveMode({ settings }) {
+  const { activeDriver, activeDriverId, refreshDrivers } = useDriver()
   const [running, setRunning] = useState(false)
   const [frame, setFrame] = useState(null)
   const [metrics, setMetrics] = useState(null)
@@ -13,13 +15,19 @@ export default function LiveMode({ settings }) {
   const playAlarm = useAlarm()
 
   const start = useCallback(() => {
+    if (!activeDriverId || !activeDriver) {
+      setError('Please select a driver before starting monitoring.')
+      setRunning(false)
+      return
+    }
+
     setError('')
     setRunning(true)
     setMetrics(null)
 
     const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
     const host = window.location.host
-    const wsUrl = `${proto}://${host}/ws/live?speed_limit=${settings.speedLimit}&ear_threshold=${settings.earThreshold}`
+    const wsUrl = `${proto}://${host}/ws/live?speed_limit=${settings.speedLimit}&ear_threshold=${settings.earThreshold}&driver_id=${activeDriverId}`
     const ws = new WebSocket(wsUrl)
     wsRef.current = ws
 
@@ -45,15 +53,17 @@ export default function LiveMode({ settings }) {
 
     ws.onclose = () => {
       setRunning(false)
+      if (refreshDrivers) refreshDrivers()
     }
-  }, [settings, playAlarm])
+  }, [settings, playAlarm, activeDriverId, activeDriver, refreshDrivers])
 
   const stop = useCallback(() => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ action: 'stop' }))
     }
     setRunning(false)
-  }, [])
+    if (refreshDrivers) refreshDrivers()
+  }, [refreshDrivers])
 
   useEffect(() => {
     return () => {
@@ -71,6 +81,29 @@ export default function LiveMode({ settings }) {
       <div className="page-header">
         <h1>📹 Live Camera Monitor</h1>
         <p>Real-time driver behaviour &amp; obstacle monitoring with continuous alarm system.</p>
+      </div>
+
+      {/* Active Driver Badge */}
+      <div className="chart-card mb-4" style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderLeft: '4px solid #22c55e' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <img 
+            src={activeDriver?.profile_photo || "https://api.dicebear.com/7.x/bottts/svg?seed=driver"} 
+            alt={activeDriver?.full_name} 
+            style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid #334155', objectFit: 'cover' }}
+          />
+          <div>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <UserCheck size={13} color="#22c55e" /> MONITORING SESSION DRIVER
+            </div>
+            <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: '0.95rem' }}>
+              {activeDriver ? activeDriver.full_name : <span style={{ color: '#ef4444' }}>No Driver Selected</span>}
+              {activeDriver && <span style={{ fontSize: '0.78rem', color: '#64748b', marginLeft: '0.5rem', fontFamily: 'monospace' }}>({activeDriver.driver_id})</span>}
+            </div>
+          </div>
+        </div>
+        <span className={`badge ${activeDriver ? 'badge-success' : 'badge-danger'}`}>
+          {activeDriver ? activeDriver.licence_type || 'Commercial' : 'Action Required'}
+        </span>
       </div>
 
       {/* Controls */}
