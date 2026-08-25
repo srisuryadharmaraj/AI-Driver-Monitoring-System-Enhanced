@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import { Camera, Square, AlertTriangle, ShieldAlert, Activity, UserCheck } from 'lucide-react'
+import { Camera, Square, AlertTriangle, ShieldAlert, Activity, UserCheck, Shield, Eye, Compass, Car, Zap } from 'lucide-react'
+import TopBar from './TopBar'
 import RiskGauge from './RiskGauge'
 import TimelineChart from './TimelineChart'
 import useAlarm from '../hooks/useAlarm'
@@ -42,7 +43,6 @@ export default function LiveMode({ settings }) {
         setFrame(`data:image/jpeg;base64,${msg.image}`)
       }
       setMetrics(msg)
-      // Play alarm sound in browser
       if (msg.alarm) playAlarm()
     }
 
@@ -76,160 +76,191 @@ export default function LiveMode({ settings }) {
 
   const alarmActive = running && metrics?.alarm
 
-  return (
-    <div>
-      <div className="page-header">
-        <h1>📹 Live Camera Monitor</h1>
-        <p>Real-time driver behaviour &amp; obstacle monitoring with continuous alarm system.</p>
-      </div>
+  // Compute ADAS Alert Status State
+  const getAdasStatus = () => {
+    if (!running) return { text: 'SYSTEM READY', badge: 'badge-info' }
+    if (alarmActive) return { text: 'CRITICAL HAZARD ALARM', badge: 'badge-danger' }
+    if (metrics?.collision_risk) return { text: 'COLLISION WARNING', badge: 'badge-danger' }
+    if (metrics?.fatigue) return { text: 'FATIGUE DETECTED', badge: 'badge-warning' }
+    if (metrics?.distraction) return { text: 'DISTRACTION DETECTED', badge: 'badge-warning' }
+    if ((metrics?.speed_kmph ?? 0) > settings.speedLimit) return { text: 'OVERSPEED WARNING', badge: 'badge-warning' }
+    return { text: 'SAFE OPERATIONAL', badge: 'badge-safe' }
+  }
 
-      {/* Active Driver Badge */}
-      <div className="chart-card mb-4" style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderLeft: '4px solid #22c55e' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+  const adasState = getAdasStatus()
+
+  return (
+    <div className="page-container">
+      <TopBar 
+        title="SSD DRIVEAI — REAL-TIME ADAS MONITOR" 
+        subtitle="Live Driver Behavior & Safety Intelligence Cockpit"
+      />
+
+      {/* Active Session Driver Strip */}
+      <div className="card card-accent-border mb-4" style={{ padding: '0.9rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <img 
             src={activeDriver?.profile_photo || "https://api.dicebear.com/7.x/bottts/svg?seed=driver"} 
             alt={activeDriver?.full_name} 
-            style={{ width: 38, height: 38, borderRadius: '50%', border: '1px solid #334155', objectFit: 'cover' }}
+            style={{ width: 44, height: 44, borderRadius: '50%', border: '2px solid var(--border-accent)', objectFit: 'cover' }}
           />
           <div>
-            <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <UserCheck size={13} color="#22c55e" /> MONITORING SESSION DRIVER
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.35rem', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              <UserCheck size={14} color="#00e676" /> Active Monitoring Session Driver
             </div>
-            <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: '0.95rem' }}>
-              {activeDriver ? activeDriver.full_name : <span style={{ color: '#ef4444' }}>No Driver Selected</span>}
-              {activeDriver && <span style={{ fontSize: '0.78rem', color: '#64748b', marginLeft: '0.5rem', fontFamily: 'monospace' }}>({activeDriver.driver_id})</span>}
+            <div style={{ fontWeight: 800, color: '#ffffff', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {activeDriver ? activeDriver.full_name : <span style={{ color: 'var(--danger)' }}>No Driver Selected</span>}
+              {activeDriver && (
+                <span className="driver-id-pill">{activeDriver.driver_id}</span>
+              )}
             </div>
           </div>
         </div>
-        <span className={`badge ${activeDriver ? 'badge-success' : 'badge-danger'}`}>
-          {activeDriver ? activeDriver.licence_type || 'Commercial' : 'Action Required'}
-        </span>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <span className={`badge ${adasState.badge}`}>
+            {adasState.text}
+          </span>
+        </div>
       </div>
 
-      {/* Controls */}
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <button className="btn btn-primary" onClick={start} disabled={running}>
-          <Camera size={16} /> Start Camera
+      {/* Live Controls */}
+      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        <button className="btn btn-primary" onClick={start} disabled={running} style={{ padding: '0.65rem 1.5rem', fontSize: '0.9rem' }}>
+          <Camera size={16} /> START ADAS MONITOR
         </button>
-        <button className="btn btn-danger" onClick={stop} disabled={!running}>
-          <Square size={16} /> Stop Camera
+        <button className="btn btn-danger" onClick={stop} disabled={!running} style={{ padding: '0.65rem 1.5rem', fontSize: '0.9rem' }}>
+          <Square size={16} /> STOP MONITORING
         </button>
         {running && (
-          <span className="monitoring-badge">
-            <Activity size={14} /> Continuous Monitoring Active
+          <span className="status-chip chip-online">
+            <span className="status-dot"></span>
+            <Activity size={14} /> LIVE CAMERA STREAMING
           </span>
         )}
       </div>
 
       {error && (
-        <div className="alert-banner"><AlertTriangle size={18} /> {error}</div>
+        <div className="card card-danger mb-4" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--danger)', fontWeight: 700 }}>
+          <AlertTriangle size={20} /> {error}
+        </div>
       )}
 
       {/* Alarm Banner */}
       {alarmActive && (
-        <div className="alarm-banner">
-          <ShieldAlert size={20} />
+        <div className="card card-danger mb-4" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
+          <ShieldAlert size={24} color="#ff334b" />
           <div>
-            <strong>ALARM — Unsafe Behaviour Detected!</strong>
-            <div className="alarm-reasons">
-              {(metrics.alarm_reasons || []).map((r, i) => <span key={i}>• {r}</span>)}
+            <strong style={{ color: '#ff334b', fontSize: '0.95rem', letterSpacing: '0.04em' }}>UNSAFE DRIVING / HAZARD DETECTED!</strong>
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+              {(metrics.alarm_reasons || []).map((r, i) => <span key={i} style={{ marginRight: '0.75rem' }}>• {r}</span>)}
             </div>
           </div>
         </div>
       )}
 
-      {/* Live View + Sidebar */}
-      <div className="live-grid">
-        {/* Video Feed */}
+      {/* Main Grid: ADAS Feed + Telemetry Sidebar */}
+      <div className="command-grid" style={{ gridTemplateColumns: '2.2fr 1fr' }}>
+        {/* Left Column: Live Frame Feed + Rolling Telemetry Charts */}
         <div>
-          <div className={`video-frame ${alarmActive ? 'frame-alarm' : ''}`}>
+          <div className="card mb-4" style={{ padding: '0.5rem', background: '#000000', border: alarmActive ? '2px solid var(--danger)' : '1px solid var(--border-accent)', minHeight: '380px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             {frame ? (
-              <img src={frame} alt="Live feed" />
+              <img src={frame} alt="Live ADAS Feed" style={{ width: '100%', maxHeight: '480px', objectFit: 'contain', borderRadius: 4 }} />
             ) : (
-              <span className="placeholder-text">
-                {running ? 'Connecting…' : 'Camera not active'}
-              </span>
+              <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+                <Camera size={48} color="var(--text-muted)" style={{ marginBottom: '1rem' }} />
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                  {running ? 'CONNECTING TO ADAS STREAM…' : 'CAMERA STREAM INACTIVE — CLICK START ADAS MONITOR'}
+                </p>
+              </div>
             )}
           </div>
 
-          {/* Rolling Charts */}
+          {/* Rolling Telemetry History Charts */}
           {metrics && running && (
             <>
               <div className="chart-grid">
-                <TimelineChart data={metrics.speed_history || []} title="Speed" yLabel="km/h" dangerLine={settings.speedLimit} color="#3b82f6" />
-                <TimelineChart data={metrics.risk_history || []} title="Risk Score" yLabel="Score" dangerLine={0.6} color="#f59e0b" />
+                <TimelineChart data={metrics.speed_history || []} title="Live Speed Telemetry" yLabel="km/h" dangerLine={settings.speedLimit} color="#0066ff" />
+                <TimelineChart data={metrics.risk_history || []} title="Live Risk Index" yLabel="Score" dangerLine={0.6} color="#ffb300" />
               </div>
               <div className="chart-grid">
-                <TimelineChart data={metrics.ear_history || []} title="EAR" yLabel="EAR" dangerLine={settings.earThreshold} color="#22c55e" />
-                <TimelineChart data={metrics.danger_history || []} title="Collision Danger" yLabel="Danger" dangerLine={0.5} color="#ef4444" />
+                <TimelineChart data={metrics.ear_history || []} title="Live Eye Aspect Ratio (EAR)" yLabel="EAR" dangerLine={settings.earThreshold} color="#00e676" />
+                <TimelineChart data={metrics.danger_history || []} title="Collision Danger Level" yLabel="Danger" dangerLine={0.5} color="#ff334b" />
               </div>
             </>
           )}
         </div>
 
-        {/* Metrics Sidebar */}
-        <div className="live-sidebar-panel">
-          <div className="card">
-            <RiskGauge score={metrics?.risk_score ?? 0} size={180} />
+        {/* Right Column: ADAS Real-Time Telemetry Panels */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1.25rem' }}>
+            <span className="card-title mb-2">LIVE RISK GAUGE</span>
+            <RiskGauge score={metrics?.risk_score ?? 0} size={170} />
           </div>
 
-          <div className="card">
-            <div className="card-title">Speed</div>
-            <div className="card-value" style={{ color: (metrics?.speed_kmph ?? 0) > settings.speedLimit ? '#ef4444' : '#22c55e' }}>
-              {(metrics?.speed_kmph ?? 0).toFixed(0)} <small>km/h</small>
+          <div className="kpi-card card-accent-border">
+            <span className="kpi-title">Live Speed</span>
+            <div className="kpi-value-wrap">
+              <span className="telemetry-number" style={{ color: (metrics?.speed_kmph ?? 0) > settings.speedLimit ? 'var(--danger)' : '#ffffff' }}>
+                {(metrics?.speed_kmph ?? 0).toFixed(0)}
+              </span>
+              <span className="kpi-unit">km/h</span>
+            </div>
+            <span className="kpi-subtext">Limit: {settings.speedLimit} km/h</span>
+          </div>
+
+          <div className="kpi-card card-accent-border">
+            <span className="kpi-title">Eye Aspect Ratio (EAR)</span>
+            <div className="kpi-value-wrap">
+              <span className="telemetry-number">{(metrics?.ear ?? 0).toFixed(2)}</span>
             </div>
           </div>
 
-          <div className="card">
-            <div className="card-title">EAR</div>
-            <div className="card-value">{(metrics?.ear ?? 0).toFixed(2)}</div>
-          </div>
-
-          <div className="card">
-            <div className="card-title">Fatigue</div>
-            <div className="card-value" style={{ color: metrics?.fatigue ? '#ef4444' : '#22c55e' }}>
-              {metrics?.fatigue ? '😴 YES' : '✅ No'}
+          <div className="kpi-card card-accent-border">
+            <span className="kpi-title">Fatigue State</span>
+            <div className="kpi-value-wrap">
+              <span style={{ fontSize: '1.2rem', fontWeight: 800, color: metrics?.fatigue ? 'var(--danger)' : 'var(--safe)' }}>
+                {metrics?.fatigue ? '😴 DROWSY' : '✅ ALERT'}
+              </span>
             </div>
           </div>
 
-          <div className="card">
-            <div className="card-title">Distracted</div>
-            <div className="card-value" style={{ color: metrics?.distraction ? '#ef4444' : '#22c55e' }}>
-              {metrics?.distraction ? '⚠️ YES' : '✅ No'}
+          <div className="kpi-card card-accent-border">
+            <span className="kpi-title">Distraction State</span>
+            <div className="kpi-value-wrap">
+              <span style={{ fontSize: '1.2rem', fontWeight: 800, color: metrics?.distraction ? 'var(--danger)' : 'var(--safe)' }}>
+                {metrics?.distraction ? '⚠️ DISTRACTED' : '✅ FOCUSED'}
+              </span>
             </div>
           </div>
 
-          <div className={`card ${metrics?.collision_risk ? 'card-danger' : ''}`}>
-            <div className="card-title">Collision Risk</div>
-            <div className="card-value" style={{ color: metrics?.collision_risk ? '#ef4444' : '#22c55e' }}>
-              {metrics?.collision_risk ? '🚨 YES' : '✅ No'}
+          <div className={`kpi-card card-accent-border ${metrics?.collision_risk ? 'card-danger' : ''}`}>
+            <span className="kpi-title">Collision Hazard</span>
+            <div className="kpi-value-wrap">
+              <span style={{ fontSize: '1.2rem', fontWeight: 800, color: metrics?.collision_risk ? 'var(--danger)' : 'var(--safe)' }}>
+                {metrics?.collision_risk ? '🚨 HAZARD' : '✅ CLEAR'}
+              </span>
             </div>
             {metrics?.obstacle_detected && (
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+              <span className="kpi-subtext" style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
                 {metrics.obstacle_count} obstacle{metrics.obstacle_count !== 1 ? 's' : ''} — {metrics.obstacle_label}
-                {metrics.approaching && <span style={{ color: '#ef4444' }}> (approaching)</span>}
-              </div>
+                {metrics.approaching && <span style={{ color: 'var(--danger)' }}> (approaching)</span>}
+              </span>
             )}
           </div>
 
-          <div className="card">
-            <div className="card-title">Danger Score</div>
-            <div className="card-value" style={{ color: (metrics?.danger_score ?? 0) > 0.5 ? '#ef4444' : '#22c55e' }}>
-              {((metrics?.danger_score ?? 0) * 100).toFixed(0)}%
+          <div className="kpi-card card-accent-border">
+            <span className="kpi-title">Head Pose Orientation</span>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: '#ffffff', fontWeight: 700, marginTop: '0.2rem' }}>
+              Yaw: {(metrics?.yaw ?? 0).toFixed(0)}° &nbsp;|&nbsp; Pitch: {(metrics?.pitch ?? 0).toFixed(0)}°
             </div>
           </div>
 
-          <div className="card">
-            <div className="card-title">Head Pose</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              Yaw: {(metrics?.yaw ?? 0).toFixed(0)}° &nbsp;
-              Pitch: {(metrics?.pitch ?? 0).toFixed(0)}°
+          <div className="kpi-card card-accent-border">
+            <span className="kpi-title">Frames Processed</span>
+            <div className="kpi-value-wrap">
+              <span className="telemetry-number">{metrics?.frame_count ?? 0}</span>
             </div>
-          </div>
-
-          <div className="card">
-            <div className="card-title">Frames Processed</div>
-            <div className="card-value" style={{ fontSize: '1.25rem' }}>{metrics?.frame_count ?? 0}</div>
           </div>
         </div>
       </div>

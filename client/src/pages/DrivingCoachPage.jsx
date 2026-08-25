@@ -4,7 +4,7 @@ import ActiveDriverSelector from '../components/ActiveDriverSelector'
 import DriverAvatar from '../components/DriverAvatar'
 import CoachingActionPlan from '../components/CoachingActionPlan'
 import { useDriver } from '../context/DriverContext'
-import { Sparkles, CheckCircle2, AlertTriangle, Info, Award, Printer, ShieldAlert } from 'lucide-react'
+import { Sparkles, CheckCircle2, AlertTriangle, Info, Award, Printer, ShieldAlert, Target, Shield } from 'lucide-react'
 
 export default function DrivingCoachPage() {
   const { activeDriverId, activeDriver, dateRange } = useDriver()
@@ -46,65 +46,110 @@ export default function DrivingCoachPage() {
   const summary = coachData?.telemetry_summary || {}
   const totalJourneys = summary.total_journeys ?? 0
 
+  const getPriorityBadge = (type) => {
+    if (type === 'warning') return { label: 'HIGH PRIORITY', cls: 'badge-danger' }
+    if (type === 'info') return { label: 'MEDIUM PRIORITY', cls: 'badge-warning' }
+    return { label: 'LOW PRIORITY', cls: 'badge-safe' }
+  }
+
   return (
     <div className="page-container printable-page">
       <div className="no-print">
         <TopBar 
-          title="AI DRIVING COACH INTELLIGENCE" 
-          subtitle="Rule-based transparent safety guidance, actionable recommendations & driver feedback"
+          title="SSD DRIVEAI — AI PERFORMANCE COACH" 
+          subtitle="Transparent Rule-Based Safety Guidance, Actionable Recommendations & Coaching Feedback"
         />
 
         <ActiveDriverSelector showDateFilter={true} className="mb-4" />
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.25rem' }}>
-          <button className="btn btn-primary" onClick={handlePrint}>
-            <Printer size={18} /> Export / Print AI Coaching Report
+          <button className="btn btn-primary" onClick={handlePrint} style={{ padding: '0.65rem 1.25rem' }}>
+            <Printer size={18} /> EXPORT / PRINT AI COACHING REPORT
           </button>
         </div>
       </div>
 
       {loading || !coachData ? (
-        <div className="loading-container"><p>GENERATING COACHING RECOMMENDATIONS...</p></div>
+        <div className="loading-container" style={{ padding: '4rem', textAlign: 'center' }}>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            GENERATING AI COACHING RECOMMENDATIONS...
+          </p>
+        </div>
       ) : (
         <>
           {/* Insufficient Data State Banner */}
           {totalJourneys === 0 && (
-            <div className="alert-banner" style={{ background: 'rgba(59,130,246,0.1)', borderColor: '#3b82f6', color: '#93c5fd', marginBottom: '1.5rem' }}>
-              <ShieldAlert size={20} color="#3b82f6" />
+            <div className="card card-accent-border mb-4" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
+              <ShieldAlert size={24} color="#00f0ff" />
               <div>
-                <strong>INSUFFICIENT TELEMETRY DATA BASELINE</strong>
-                <p style={{ margin: 0, fontSize: '0.85rem' }}>
+                <strong style={{ color: '#00f0ff', fontSize: '0.95rem', letterSpacing: '0.04em' }}>INSUFFICIENT TELEMETRY DATA BASELINE</strong>
+                <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
                   No monitored journey sessions recorded for the selected time range. Complete live webcam or video processing sessions to generate specific telemetry event insights.
                 </p>
               </div>
             </div>
           )}
 
-          {/* Coach Header Summary */}
-          <div className="coach-hero-card" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-            <DriverAvatar driver={{ driver_id: coachData.driver_id, full_name: coachData.driver_name, profile_photo: coachData.profile_photo }} size={72} editable={true} />
-            <div className="coach-hero-info">
-              <h3>AI COACH INSIGHTS FOR {(coachData.driver_name || 'Driver').toUpperCase()}</h3>
-              <p>
-                Safety Score Baseline: <strong>{coachData.overall_score}/100</strong> • Level: <strong>{coachData.skill_level} Driver</strong> • Sessions Monitored: <strong>{totalJourneys}</strong>
-              </p>
+          {/* Coach Hero Card */}
+          <div className="card card-accent-border mb-4" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+              <DriverAvatar driver={{ driver_id: coachData.driver_id, full_name: coachData.driver_name, profile_photo: coachData.profile_photo }} size={64} editable={true} />
+              <div>
+                <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-secondary)', fontWeight: 700 }}>
+                  DRIVER PERFORMANCE ENGINE
+                </div>
+                <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#ffffff', margin: '0.15rem 0' }}>
+                  AI COACH INSIGHTS FOR {(coachData.driver_name || 'Driver').toUpperCase()}
+                </h2>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                  Safety Baseline: <strong>{coachData.overall_score}/100</strong> • Level: <strong>{coachData.skill_level} Driver</strong> • Sessions Monitored: <strong>{totalJourneys}</strong>
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <span className="badge badge-info" style={{ padding: '0.5rem 0.85rem', fontSize: '0.78rem' }}>
+                <Sparkles size={14} /> ACTIVE AI COACHING ENGINE
+              </span>
             </div>
           </div>
 
           {/* Recommendation Cards */}
-          <div className="coach-cards-grid" style={{ marginTop: '1.5rem' }}>
-            {(coachData.insights || []).map((ins, i) => (
-              <div key={i} className={`insight-card insight-${ins.type}`}>
-                <div className="insight-card-header">
-                  {ins.type === 'positive' && <CheckCircle2 size={20} color="#22c55e" />}
-                  {ins.type === 'warning' && <AlertTriangle size={20} color="#ef4444" />}
-                  {ins.type === 'info' && <Info size={20} color="#3b82f6" />}
-                  <span className="insight-category">{ins.category}</span>
+          <div className="section-header-row mb-3">
+            <h3 className="section-title">TARGETED SAFETY RECOMMENDATIONS ({coachData.insights?.length || 0})</h3>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem', marginBottom: '1.5rem' }}>
+            {(coachData.insights || []).map((ins, i) => {
+              const priority = getPriorityBadge(ins.type)
+              return (
+                <div key={i} className="card card-accent-border" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '0.85rem', padding: '1.25rem' }}>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', fontWeight: 700, textTransform: 'uppercase', color: 'var(--accent-secondary)' }}>
+                        {ins.category}
+                      </span>
+                      <span className={`badge ${priority.cls}`}>
+                        {priority.label}
+                      </span>
+                    </div>
+
+                    <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#ffffff', marginBottom: '0.35rem' }}>
+                      {ins.title}
+                    </h4>
+
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                      {ins.message}
+                    </p>
+                  </div>
+
+                  <div style={{ paddingTop: '0.6rem', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                    <span>AI Observation Verified</span>
+                    <span style={{ color: 'var(--safe)', fontWeight: 700 }}>Target Improvement Active</span>
+                  </div>
                 </div>
-                <h4 className="insight-title">{ins.title}</h4>
-                <p className="insight-message">{ins.message}</p>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* Action Plan */}

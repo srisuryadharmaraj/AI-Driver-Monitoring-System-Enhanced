@@ -3,7 +3,7 @@ import TopBar from '../components/TopBar'
 import DriverCard from '../components/DriverCard'
 import ActiveDriverSelector from '../components/ActiveDriverSelector'
 import { useDriver } from '../context/DriverContext'
-import { Plus, Search, UserPlus, X, CheckCircle } from 'lucide-react'
+import { Plus, Search, UserPlus, X, CheckCircle, Users } from 'lucide-react'
 
 export default function DriversPage() {
   const { drivers: contextDrivers, refreshDrivers } = useDriver()
@@ -60,6 +60,7 @@ export default function DriversPage() {
             years_of_experience: 5,
           })
           fetchDrivers()
+          if (refreshDrivers) refreshDrivers()
         } else {
           setMsg(res.detail || 'Error adding driver')
         }
@@ -75,35 +76,41 @@ export default function DriversPage() {
   return (
     <div className="page-container">
       <TopBar 
-        title="DRIVER MANAGEMENT & INTELLIGENCE" 
-        subtitle="Manage fleet driver profiles, licence telemetry, and driver skill credentials"
+        title="SSD DRIVEAI — DRIVER INTELLIGENCE REGISTRY" 
+        subtitle="Verified Fleet Driver Credentials, Performance Telemetry & Licence Registry"
       />
 
       <ActiveDriverSelector showDateFilter={true} className="mb-4" />
 
       {msg && (
-        <div className="alert-banner" style={{ color: '#22c55e', borderColor: '#22c55e', background: 'rgba(34,197,94,0.1)' }}>
-          <CheckCircle size={18} />
-          <span>{msg}</span>
+        <div className="card card-safe mb-4" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem' }}>
+          <CheckCircle size={18} color="var(--safe)" />
+          <span style={{ color: 'var(--safe)', fontWeight: 700 }}>{msg}</span>
           <button style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }} onClick={() => setMsg('')}><X size={16} /></button>
         </div>
       )}
 
-      <div className="toolbar-row">
-        <div className="search-box">
-          <Search size={18} color="#94a3b8" />
+      {/* Toolbar Search & Add Action */}
+      <div className="card mb-4" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', padding: '0.85rem 1.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 260 }}>
+          <Search size={18} color="var(--accent-secondary)" />
           <input 
             type="text" 
-            placeholder="Search by driver name, ID, or licence number..."
+            placeholder="Search driver by name, driver ID, or licence number..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            style={{ width: '100%' }}
           />
         </div>
 
         <button className="btn btn-primary" onClick={() => setShowModal(true)}>
           <UserPlus size={18} />
-          Add New Driver
+          ADD NEW DRIVER PROFILE
         </button>
+      </div>
+
+      <div className="section-header-row">
+        <h2 className="section-title">FLEET DRIVER CREDENTIAL ROSTER ({filtered.length})</h2>
       </div>
 
       <div className="driver-cards-grid">
@@ -114,55 +121,55 @@ export default function DriversPage() {
 
       {/* Add Driver Modal */}
       {showModal && (
-        <div className="modal-backdrop">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Add New Driver Profile</h3>
-              <button onClick={() => setShowModal(false)} className="modal-close-btn"><X size={20} /></button>
+        <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div className="modal-content card" style={{ maxWidth: 560, width: '100%', background: 'var(--surface)', border: '1px solid var(--border-accent)', borderRadius: 10, padding: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border)' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff' }}>ADD NEW DRIVER PROFILE</h3>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
 
-            <form onSubmit={handleAddDriver} className="modal-form">
-              <div className="form-group">
-                <label>Full Name *</label>
-                <input required type="text" value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} placeholder="e.g. Suresh Patel" />
+            <form onSubmit={handleAddDriver} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>FULL NAME *</label>
+                <input required type="text" value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} placeholder="e.g. Suresh Patel" style={{ width: '100%' }} />
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Age</label>
-                  <input type="number" min={18} max={75} value={formData.age} onChange={e => setFormData({ ...formData, age: +e.target.value })} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>AGE</label>
+                  <input type="number" min={18} max={75} value={formData.age} onChange={e => setFormData({ ...formData, age: +e.target.value })} style={{ width: '100%' }} />
                 </div>
-                <div className="form-group">
-                  <label>Years of Experience</label>
-                  <input type="number" min={0} max={50} value={formData.years_of_experience} onChange={e => setFormData({ ...formData, years_of_experience: +e.target.value })} />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Phone Number *</label>
-                  <input required type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="+91 98765 43210" />
-                </div>
-                <div className="form-group">
-                  <label>Email *</label>
-                  <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="suresh@fleetai.in" />
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>EXPERIENCE (YEARS)</label>
+                  <input type="number" min={0} max={50} value={formData.years_of_experience} onChange={e => setFormData({ ...formData, years_of_experience: +e.target.value })} style={{ width: '100%' }} />
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Licence Number *</label>
-                  <input required type="text" value={formData.licence_number} onChange={e => setFormData({ ...formData, licence_number: e.target.value })} placeholder="DL-1420230012345" />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>PHONE NUMBER *</label>
+                  <input required type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="+91 98765 43210" style={{ width: '100%' }} />
                 </div>
-                <div className="form-group">
-                  <label>Licence Type</label>
-                  <input type="text" value={formData.licence_type} onChange={e => setFormData({ ...formData, licence_type: e.target.value })} />
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>EMAIL *</label>
+                  <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="suresh@fleetai.in" style={{ width: '100%' }} />
                 </div>
               </div>
 
-              <div className="modal-footer">
-                <button type="button" className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Create Driver Profile</button>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>LICENCE NUMBER *</label>
+                  <input required type="text" value={formData.licence_number} onChange={e => setFormData({ ...formData, licence_number: e.target.value })} placeholder="DL-1420230012345" style={{ width: '100%' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>LICENCE TYPE</label>
+                  <input type="text" value={formData.licence_type} onChange={e => setFormData({ ...formData, licence_type: e.target.value })} style={{ width: '100%' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Create Driver Credential</button>
               </div>
             </form>
           </div>

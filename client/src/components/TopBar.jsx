@@ -5,7 +5,7 @@ export default function TopBar({ title, subtitle }) {
   return (
     <header className="top-bar">
       <div className="top-bar-title">
-        <h1>{title || 'AI Command Center'}</h1>
+        <h1>{title || 'SSD DRIVEAI COMMAND CENTER'}</h1>
         {subtitle && <p>{subtitle}</p>}
       </div>
 

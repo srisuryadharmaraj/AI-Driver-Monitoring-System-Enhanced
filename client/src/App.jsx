@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { 
   Upload, Camera, Settings, ShieldAlert, LayoutDashboard, Users, 
   Route as RouteIcon, Cpu, BarChart2, Sparkles, Building, ArrowRightLeft, 
-  Briefcase, FileText, FlaskConical, AlertTriangle 
+  Briefcase, FileText, FlaskConical, AlertTriangle, ChevronLeft, ChevronRight 
 } from 'lucide-react'
 
 import UploadMode from './components/UploadMode'
@@ -25,10 +25,12 @@ import ModelEvaluationPage from './pages/ModelEvaluationPage'
 import IncidentManagementPage from './pages/IncidentManagementPage'
 
 import { DriverProvider } from './context/DriverContext'
+import logoImg from './assets/ssd-driveai-logo.png.png'
 
 export default function App() {
   const navigate = useNavigate()
   const location = useLocation()
+  const [collapsed, setCollapsed] = useState(false)
 
   const [settings, setSettings] = useState({
     speedLimit: 80,
@@ -81,76 +83,97 @@ export default function App() {
   return (
     <DriverProvider>
       <div className="app-layout">
-        {/* Sidebar */}
-        <aside className="sidebar">
+        {/* Automotive AI Cockpit Sidebar */}
+        <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
           <div className="sidebar-brand" onClick={() => navigate('/command')} style={{ cursor: 'pointer' }}>
-            <ShieldAlert size={24} color="#3b82f6" />
-            <span>Driver AI Platform</span>
+            <div className="sidebar-brand-logo">
+              <img src={logoImg} alt="SSD DriveAI Logo" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+            </div>
+            <div className="sidebar-brand-text">
+              <span className="sidebar-brand-title">SSD DRIVEAI</span>
+              <span className="sidebar-brand-subtitle">SMART • SAFE • CONNECTED</span>
+            </div>
+            <button 
+              className="sidebar-toggle-btn"
+              onClick={(e) => {
+                e.stopPropagation()
+                setCollapsed(!collapsed)
+              }}
+              title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            >
+              {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            </button>
           </div>
 
           <div className="sidebar-scrollable">
             {navSections.map((sec, idx) => (
               <div key={idx} className="nav-section">
                 <div className="nav-section-title">{sec.section}</div>
-                {sec.items.map((item) => (
-                  <button
-                    key={item.path}
-                    className={`nav-link ${location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)) ? 'active' : ''}`}
-                    onClick={() => navigate(item.path)}
-                  >
-                    {item.icon}
-                    {item.label}
-                  </button>
-                ))}
+                {sec.items.map((item) => {
+                  const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path))
+                  return (
+                    <button
+                      key={item.path}
+                      className={`nav-link ${isActive ? 'active' : ''}`}
+                      onClick={() => navigate(item.path)}
+                      title={collapsed ? item.label : undefined}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </button>
+                  )
+                })}
               </div>
             ))}
 
-            <div style={{ marginTop: '1rem', padding: '0 0.5rem' }}>
-              <div className="nav-link" style={{ cursor: 'default', gap: '0.5rem' }}>
-                <Settings size={18} />
-                Settings
+            {!collapsed && (
+              <div className="sidebar-settings-panel">
+                <div className="settings-header">
+                  <Settings size={14} />
+                  <span>Telemetry Config</span>
+                </div>
+                <div className="settings-group">
+                  <div className="setting-row">
+                    <label>
+                      Speed Limit
+                      <span className="setting-val">{settings.speedLimit} km/h</span>
+                    </label>
+                    <input
+                      type="range" min={30} max={160} step={5}
+                      value={settings.speedLimit}
+                      onChange={(e) => setSettings(s => ({ ...s, speedLimit: +e.target.value }))}
+                    />
+                  </div>
+                  <div className="setting-row">
+                    <label>
+                      EAR Threshold
+                      <span className="setting-val">{settings.earThreshold}</span>
+                    </label>
+                    <input
+                      type="range" min={0.15} max={0.35} step={0.01}
+                      value={settings.earThreshold}
+                      onChange={(e) => setSettings(s => ({ ...s, earThreshold: +e.target.value }))}
+                    />
+                  </div>
+                  <div className="setting-row">
+                    <label>
+                      Skip Frames
+                      <span className="setting-val">{settings.skipFrames}</span>
+                    </label>
+                    <input
+                      type="range" min={0} max={10} step={1}
+                      value={settings.skipFrames}
+                      onChange={(e) => setSettings(s => ({ ...s, skipFrames: +e.target.value }))}
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="settings-group">
-                <div className="setting-row">
-                  <label>
-                    Speed Limit (km/h)
-                    <span className="setting-val">{settings.speedLimit}</span>
-                  </label>
-                  <input
-                    type="range" min={30} max={160} step={5}
-                    value={settings.speedLimit}
-                    onChange={(e) => setSettings(s => ({ ...s, speedLimit: +e.target.value }))}
-                  />
-                </div>
-                <div className="setting-row">
-                  <label>
-                    EAR Threshold
-                    <span className="setting-val">{settings.earThreshold}</span>
-                  </label>
-                  <input
-                    type="range" min={0.15} max={0.35} step={0.01}
-                    value={settings.earThreshold}
-                    onChange={(e) => setSettings(s => ({ ...s, earThreshold: +e.target.value }))}
-                  />
-                </div>
-                <div className="setting-row">
-                  <label>
-                    Skip Frames
-                    <span className="setting-val">{settings.skipFrames}</span>
-                  </label>
-                  <input
-                    type="range" min={0} max={10} step={1}
-                    value={settings.skipFrames}
-                    onChange={(e) => setSettings(s => ({ ...s, skipFrames: +e.target.value }))}
-                  />
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="sidebar-footer">
-            AI Driver Behavior & Skill Intelligence Platform v3.0<br />
-            OpenCV · MediaPipe · YOLOv8 · React 19
+            AI Driver Monitoring & Skill Intelligence<br />
+            OpenCV · MediaPipe · YOLOv8
           </div>
         </aside>
 
