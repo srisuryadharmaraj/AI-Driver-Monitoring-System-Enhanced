@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { 
   Upload, Camera, Settings, ShieldAlert, LayoutDashboard, Users, 
   Route as RouteIcon, Cpu, BarChart2, Sparkles, Building, ArrowRightLeft, 
-  Briefcase, FileText 
+  Briefcase, FileText, FlaskConical 
 } from 'lucide-react'
 
 import UploadMode from './components/UploadMode'
@@ -21,6 +21,7 @@ import FleetDashboardPage from './pages/FleetDashboardPage'
 import DriverComparisonPage from './pages/DriverComparisonPage'
 import SuitabilityPage from './pages/SuitabilityPage'
 import DriverPassportPage from './pages/DriverPassportPage'
+import ModelEvaluationPage from './pages/ModelEvaluationPage'
 
 import { DriverProvider } from './context/DriverContext'
 
@@ -67,9 +68,10 @@ export default function App() {
       ]
     },
     {
-      section: 'REPORTS',
+      section: 'REPORTS & RESEARCH',
       items: [
         { path: '/passport', label: 'Skill Passport', icon: <FileText size={18} /> },
+        { path: '/evaluation', label: 'Model Evaluation', icon: <FlaskConical size={18} /> },
       ]
     }
   ]
@@ -167,6 +169,7 @@ export default function App() {
             <Route path="/comparison" element={<DriverComparisonPage />} />
             <Route path="/suitability" element={<SuitabilityPage />} />
             <Route path="/passport" element={<DriverPassportPage />} />
+            <Route path="/evaluation" element={<ModelEvaluationPage />} />
           </Routes>
         </main>
       </div>

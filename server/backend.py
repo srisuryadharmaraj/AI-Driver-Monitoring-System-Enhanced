@@ -32,18 +32,19 @@ from video_mode import VideoProcessor
 from live_mode import LiveProcessor
 
 # ── New Platform Routers & Services ─────────────────────────────────────────
+from database.db import init_db
+from services.seed_data import seed_database
+from routers.drivers import router as drivers_router
+from routers.journeys import router as journeys_router
+from routers.analytics import router as analytics_router
+from routers.recruitment import router as recruitment_router
+from routers.evaluation import router as evaluation_router
+
 try:
-    from database.db import init_db
-    from services.seed_data import seed_database
-    from routers.drivers import router as drivers_router
-    from routers.journeys import router as journeys_router, record_journey, JourneyRecordCreate
-    from routers.analytics import router as analytics_router
-    from routers.recruitment import router as recruitment_router
-    
     init_db()
     seed_database()
 except Exception as _e:
-    print(f"[Platform Router Import Warning] {_e}")
+    print(f"[Platform DB Init Warning] {_e}")
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 PREDICTOR = str(PROJECT_ROOT / "models" / "shape_predictor_68_face_landmarks.dat")
@@ -67,13 +68,11 @@ app.add_middleware(
 )
 
 # Include New Platform Routers
-try:
-    app.include_router(drivers_router)
-    app.include_router(journeys_router)
-    app.include_router(analytics_router)
-    app.include_router(recruitment_router)
-except Exception as _e:
-    print(f"[Router Registration Warning] {_e}")
+app.include_router(drivers_router)
+app.include_router(journeys_router)
+app.include_router(analytics_router)
+app.include_router(recruitment_router)
+app.include_router(evaluation_router)
 
 # Mount uploads directory for static media & driver photos
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
