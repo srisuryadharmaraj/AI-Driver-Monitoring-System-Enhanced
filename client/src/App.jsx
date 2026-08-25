@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { 
   Upload, Camera, Settings, ShieldAlert, LayoutDashboard, Users, 
   Route as RouteIcon, Cpu, BarChart2, Sparkles, Building, ArrowRightLeft, 
-  Briefcase, FileText, FlaskConical 
+  Briefcase, FileText, FlaskConical, AlertTriangle 
 } from 'lucide-react'
 
 import UploadMode from './components/UploadMode'
@@ -22,6 +22,7 @@ import DriverComparisonPage from './pages/DriverComparisonPage'
 import SuitabilityPage from './pages/SuitabilityPage'
 import DriverPassportPage from './pages/DriverPassportPage'
 import ModelEvaluationPage from './pages/ModelEvaluationPage'
+import IncidentManagementPage from './pages/IncidentManagementPage'
 
 import { DriverProvider } from './context/DriverContext'
 
@@ -65,6 +66,7 @@ export default function App() {
         { path: '/fleet', label: 'Fleet Intelligence', icon: <Building size={18} /> },
         { path: '/comparison', label: 'Driver Comparison', icon: <ArrowRightLeft size={18} /> },
         { path: '/suitability', label: 'Recruitment Suitability', icon: <Briefcase size={18} /> },
+        { path: '/incidents', label: 'Incident Audit Engine', icon: <AlertTriangle size={18} /> },
       ]
     },
     {
@@ -170,6 +172,7 @@ export default function App() {
             <Route path="/suitability" element={<SuitabilityPage />} />
             <Route path="/passport" element={<DriverPassportPage />} />
             <Route path="/evaluation" element={<ModelEvaluationPage />} />
+            <Route path="/incidents" element={<IncidentManagementPage />} />
           </Routes>
         </main>
       </div>

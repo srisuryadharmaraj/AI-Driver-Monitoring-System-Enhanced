@@ -23,6 +23,7 @@ from vision.lane import LaneDetector, LaneResult
 from vision.plate import PlateDetector, PlateResult
 from vision.obstacle import ObstacleDetector, ObstacleResult
 from risk.risk_engine import RiskEngine, RiskResult
+from services.safety_event_logger import SafetyEventLogger
 
 
 # ── Per-frame bundle ─────────────────────────────────────────────────────────
@@ -109,7 +110,7 @@ class VideoProcessor:
         self._reset()
 
     # ── Batch API ────────────────────────────────────────────────────────────
-    def run(self, video_path: str | Path, progress_cb=None) -> VideoSummary:
+    def run(self, video_path: str | Path, progress_cb=None, journey_id: Optional[str] = None) -> VideoSummary:
         """Process full video, return ``VideoSummary``."""
         cap = cv2.VideoCapture(str(video_path))
         total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -119,6 +120,7 @@ class VideoProcessor:
         summary = VideoSummary(total_frames=total, fps=fps,
                                duration_sec=round(total / fps, 2))
         risks, speeds, ears, dangers = [], [], [], []
+        event_logger = SafetyEventLogger(journey_id=journey_id)
 
         for bundle in self.stream(video_path):
             if bundle.fatigue.fatigue:
@@ -148,6 +150,18 @@ class VideoProcessor:
                     "score": bundle.risk.score,
                     "reasons": bundle.risk.alarm_labels,
                 })
+
+            # Stateful safety event logging with leading-edge duplicate suppression
+            event_logger.process_signals(
+                fatigue=bundle.fatigue.fatigue,
+                distraction=bundle.distraction.distraction,
+                overspeed=bundle.plate.overspeed,
+                collision_risk=bundle.obstacle.collision_risk,
+                risk_level_val=bundle.risk.level.value,
+                risk_score=bundle.risk.score,
+                timestamp_sec=bundle.timestamp_sec,
+                alarm_reasons=bundle.risk.alarm_labels,
+            )
 
             speeds.append(bundle.speed.speed_kmph)
             risks.append(bundle.risk.score)

@@ -37,12 +37,15 @@ CREATE TABLE IF NOT EXISTS journeys (
 
 CREATE TABLE IF NOT EXISTS safety_events (
     event_id TEXT PRIMARY KEY,
-    journey_id TEXT NOT NULL,
+    journey_id TEXT,
     timestamp_sec REAL,
     event_type TEXT, -- 'Fatigue', 'Distraction', 'Lane Deviation', 'Obstacle Hazard', 'Overspeed'
     severity TEXT,   -- 'Low', 'Medium', 'High', 'Critical'
     description TEXT,
     risk_score REAL,
+    resolution_status TEXT DEFAULT 'Open',
+    supervisor_notes TEXT DEFAULT '',
+    reviewed_at TEXT,
     FOREIGN KEY(journey_id) REFERENCES journeys(journey_id)
 );
 

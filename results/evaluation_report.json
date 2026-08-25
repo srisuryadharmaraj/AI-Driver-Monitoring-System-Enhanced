@@ -1,6 +1,6 @@
 {
   "evaluation_metadata": {
-    "evaluation_date": "2026-08-25 20:45:10",
+    "evaluation_date": "2026-08-25 22:53:27",
     "dataset_name": "AI Driver Monitoring Test Frames Dataset",
     "total_dataset_files": 168,
     "valid_samples": 168,
@@ -76,8 +76,8 @@
         ]
       ]
     },
-    "avg_inference_ms": 34.82,
-    "approx_fps": 28.72,
+    "avg_inference_ms": 37.88,
+    "approx_fps": 26.4,
     "ear_threshold_used": 0.25,
     "consec_frames_thresh_used": 15,
     "per_category_detection_rate": {
@@ -123,8 +123,8 @@
         "person": 41,
         "car": 39
       },
-      "avg_inference_latency_ms": 129.11,
-      "approx_throughput_fps": 7.75
+      "avg_inference_latency_ms": 72.26,
+      "approx_throughput_fps": 13.84
     }
   },
   "lane_evaluation": {
@@ -138,8 +138,8 @@
       "lane_tracking_dropout_rate_pct": 63.1,
       "mean_absolute_center_offset_px": 1.48,
       "center_offset_variance": 132.86,
-      "avg_processing_latency_ms": 3.18,
-      "approx_throughput_fps": 314.44
+      "avg_processing_latency_ms": 2.97,
+      "approx_throughput_fps": 337.08
     }
   }
 }

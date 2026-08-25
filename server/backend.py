@@ -30,6 +30,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from video_mode import VideoProcessor
 from live_mode import LiveProcessor
+from services.safety_event_logger import SafetyEventLogger
 
 # ── New Platform Routers & Services ─────────────────────────────────────────
 from database.db import init_db
@@ -39,6 +40,7 @@ from routers.journeys import router as journeys_router
 from routers.analytics import router as analytics_router
 from routers.recruitment import router as recruitment_router
 from routers.evaluation import router as evaluation_router
+from routers.incidents import router as incidents_router
 
 try:
     init_db()
@@ -73,6 +75,7 @@ app.include_router(journeys_router)
 app.include_router(analytics_router)
 app.include_router(recruitment_router)
 app.include_router(evaluation_router)
+app.include_router(incidents_router)
 
 # Mount uploads directory for static media & driver photos
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
@@ -158,6 +161,9 @@ async def ws_process_video(websocket: WebSocket, job_id: str,
     plates = []
     alerts = []
 
+    session_journey_id = f"JRN-{uuid.uuid4().hex[:6].upper()}"
+    video_event_logger = SafetyEventLogger(journey_id=session_journey_id)
+
     try:
         for bundle in processor.stream(str(video_file)):
             frame_b64 = ""
@@ -165,6 +171,21 @@ async def ws_process_video(websocket: WebSocket, job_id: str,
                 _, buf = cv2.imencode(".jpg", bundle.annotated_frame,
                                       [cv2.IMWRITE_JPEG_QUALITY, 60])
                 frame_b64 = base64.b64encode(buf).decode("ascii")
+
+            # Stateful safety event logging with leading-edge duplicate suppression
+            try:
+                video_event_logger.process_signals(
+                    fatigue=bundle.fatigue.fatigue,
+                    distraction=bundle.distraction.distraction,
+                    overspeed=bundle.plate.overspeed,
+                    collision_risk=bundle.obstacle.collision_risk,
+                    risk_level_val=bundle.risk.level.value,
+                    risk_score=bundle.risk.score,
+                    timestamp_sec=bundle.timestamp_sec,
+                    alarm_reasons=bundle.risk.alarm_labels,
+                )
+            except Exception as _vlog_err:
+                print(f"[Video Safety Logger Warning] {_vlog_err}")
 
             # Accumulate
             if bundle.fatigue.fatigue:
@@ -256,11 +277,11 @@ async def ws_process_video(websocket: WebSocket, job_id: str,
 
         # Auto-record journey into platform database (fail-safe)
         try:
-            from database.db import query_db
+            from database.db import query_db, execute_db
             first_driver = query_db("SELECT driver_id FROM drivers LIMIT 1", one=True)
             if first_driver:
                 dur_min = max(1, int(round((total_frames / fps) / 60)))
-                record_journey(JourneyRecordCreate(
+                rec_res = record_journey(JourneyRecordCreate(
                     driver_id=first_driver["driver_id"],
                     monitoring_mode="Video",
                     duration_min=dur_min,
@@ -273,6 +294,9 @@ async def ws_process_video(websocket: WebSocket, job_id: str,
                     average_risk=avg_risk,
                     maximum_risk=max_risk
                 ))
+                if isinstance(rec_res, dict) and "journey_id" in rec_res:
+                    real_jrn_id = rec_res["journey_id"]
+                    execute_db("UPDATE safety_events SET journey_id = ? WHERE journey_id = ?", (real_jrn_id, session_journey_id))
         except Exception as _je:
             print(f"[Auto-Record Journey Warning] {_je}")
 

@@ -22,6 +22,7 @@ from vision.lane import LaneDetector, LaneResult
 from vision.plate import PlateDetector, PlateResult
 from vision.obstacle import ObstacleDetector, ObstacleResult
 from risk.risk_engine import RiskEngine, RiskResult, RiskLevel
+from services.safety_event_logger import SafetyEventLogger
 
 
 # ── Alert Manager ────────────────────────────────────────────────────────────
@@ -87,6 +88,7 @@ class LiveProcessor:
         speed_limit: float = 80.0,
         alert_sound: Optional[str] = None,
         camera_index: int = 0,
+        journey_id: Optional[str] = None,
     ) -> None:
         self.fatigue_det = FatigueDetector(predictor_path=predictor_path)
         self.distraction_det = DistractionDetector(model_path=face_landmarker_path)
@@ -96,6 +98,7 @@ class LiveProcessor:
         self.obstacle_det = ObstacleDetector(model_path=yolo_path)
         self.risk_engine = RiskEngine(speed_limit=speed_limit)
         self.alert_mgr = AlertManager(sound_path=alert_sound)
+        self.event_logger = SafetyEventLogger(journey_id=journey_id)
 
         self.camera_index = camera_index
         self.state = LiveState()
@@ -118,6 +121,7 @@ class LiveProcessor:
         self.speed_est.reset()
         self.obstacle_det.reset()
         self.risk_engine.reset()
+        self.event_logger.reset()
         self.state = LiveState()
 
     @property
@@ -164,6 +168,19 @@ class LiveProcessor:
             alarm_fired = self.alert_mgr.trigger(
                 reason="; ".join(risk.alarm_labels)
             )
+
+        # Stateful safety event logging with leading-edge duplicate suppression
+        ts_sec = round(self.state.frame_count / max(1.0, self.speed_est.fps), 2)
+        self.event_logger.process_signals(
+            fatigue=fat.fatigue,
+            distraction=dis.distraction,
+            overspeed=plate.overspeed,
+            collision_risk=obs.collision_risk,
+            risk_level_val=risk.level.value,
+            risk_score=risk.score,
+            timestamp_sec=ts_sec,
+            alarm_reasons=risk.alarm_labels,
+        )
 
         # Build annotated frame
         vis = frame.copy()
