@@ -33,7 +33,7 @@ export default function DriverPassportPage() {
     <div className="page-container printable-page">
       <div className="no-print">
         <TopBar 
-          title="SSD DRIVEAI — VERIFIED DRIVER SKILL PASSPORT" 
+          title="SSD DRIVEAI — VERIFIED DRIVER PROFILE" 
           subtitle="Verifiable Digital Performance Credential & Driver Safety Certification"
         />
 
@@ -41,7 +41,7 @@ export default function DriverPassportPage() {
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.25rem' }}>
           <button className="btn btn-primary" onClick={handlePrint} style={{ padding: '0.65rem 1.25rem' }}>
-            <Printer size={18} /> EXPORT / PRINT PASSPORT PDF
+            <Printer size={18} /> EXPORT / PRINT PROFILE PDF
           </button>
         </div>
       </div>
@@ -49,11 +49,11 @@ export default function DriverPassportPage() {
       {loading || !driver.driver_id ? (
         <div className="loading-container" style={{ padding: '4rem', textAlign: 'center' }}>
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            GENERATING VERIFIED PASSPORT CREDENTIAL...
+            GENERATING VERIFIED DRIVER PROFILE...
           </p>
         </div>
       ) : (
-        <div className="card card-accent-border passport-credential-card" style={{ padding: '2rem', background: 'linear-gradient(180deg, var(--surface) 0%, rgba(15, 20, 31, 0.95) 100%)', position: 'relative', overflow: 'hidden' }}>
+        <div className="card card-accent-border profile-credential-card passport-credential-card" style={{ padding: '2rem', background: 'linear-gradient(180deg, var(--surface) 0%, rgba(15, 20, 31, 0.95) 100%)', position: 'relative', overflow: 'hidden' }}>
           
           {/* Header Branding */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '1.25rem', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -61,7 +61,7 @@ export default function DriverPassportPage() {
               <img src={logoImg} alt="SSD DriveAI Logo" style={{ width: 44, height: 44, objectFit: 'contain' }} />
               <div>
                 <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff', letterSpacing: '0.06em', margin: 0 }}>
-                  VERIFIED DRIVER SKILL PASSPORT
+                  VERIFIED DRIVER PROFILE
                 </h2>
                 <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>
                   SSD DRIVEAI • SAFETY &amp; SKILL INTELLIGENCE PLATFORM
@@ -70,12 +70,12 @@ export default function DriverPassportPage() {
             </div>
 
             <div style={{ padding: '0.5rem 0.85rem', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 6, textAlign: 'right' }}>
-              <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', letterSpacing: '0.08em' }}>CREDENTIAL ID</span>
-              <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-secondary)', fontSize: '0.88rem' }}>PASSPORT-{driver.driver_id}</strong>
+              <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', letterSpacing: '0.08em' }}>PROFILE ID</span>
+              <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-secondary)', fontSize: '0.88rem' }}>PROFILE-{driver.driver_id}</strong>
             </div>
           </div>
 
-          {/* Main Passport Content Body */}
+          {/* Main Profile Content Body */}
           <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '2rem', alignItems: 'center', marginBottom: '1.75rem', flexWrap: 'wrap' }}>
             {/* Photo Avatar */}
             <div style={{ textAlign: 'center' }}>

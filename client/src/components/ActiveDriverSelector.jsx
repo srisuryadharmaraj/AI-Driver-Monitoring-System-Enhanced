@@ -2,12 +2,13 @@ import React from 'react'
 import { useDriver } from '../context/DriverContext'
 import DriverAvatar from './DriverAvatar'
 import DateRangeFilter from './DateRangeFilter'
+import AvailabilityBadge from './AvailabilityBadge'
 import {
   Users, Award, Shield, AlertTriangle, Eye, Activity, Gauge, Route,
   TrendingUp, CheckCircle2, ChevronDown
 } from 'lucide-react'
 
-export default function ActiveDriverSelector({ showDateFilter = true, className = '' }) {
+export default function ActiveDriverSelector({ showDateFilter = true, filterAvailableOnly = false, className = '' }) {
   const { drivers, activeDriverId, setActiveDriverId, activeDriver, activeDriverDetail, loading } = useDriver()
 
   if (loading || !activeDriver) {
@@ -47,6 +48,10 @@ export default function ActiveDriverSelector({ showDateFilter = true, className 
     return 'risk-badge-high'
   }
 
+  const displayedDrivers = filterAvailableOnly 
+    ? drivers.filter(d => (d.availability || 'Available') === 'Available')
+    : drivers
+
   return (
     <div className={`active-driver-panel ${className}`}>
       <div className="active-driver-top-bar">
@@ -61,11 +66,15 @@ export default function ActiveDriverSelector({ showDateFilter = true, className 
             onChange={(e) => setActiveDriverId(e.target.value)}
             className="active-driver-select"
           >
-            {drivers.map((d) => (
-              <option key={d.driver_id} value={d.driver_id}>
-                {d.full_name} ({d.driver_id}) — {d.licence_type || 'Commercial'}
-              </option>
-            ))}
+            {displayedDrivers.map((d) => {
+              const avail = d.availability || 'Available'
+              const availSymbol = avail === 'Busy' ? '🔴 Busy' : avail === 'On Leave' ? '🟡 On Leave' : '🟢 Available'
+              return (
+                <option key={d.driver_id} value={d.driver_id}>
+                  {d.full_name} ({d.driver_id}) — {availSymbol}
+                </option>
+              )
+            })}
           </select>
           <ChevronDown size={16} className="dropdown-arrow-icon" />
         </div>
@@ -77,8 +86,9 @@ export default function ActiveDriverSelector({ showDateFilter = true, className 
           <DriverAvatar driver={detail.full_name ? detail : activeDriver} size={72} editable={true} />
           <div className="identity-text">
             <h3 className="driver-name">{activeDriver.full_name}</h3>
-            <div className="driver-subtags">
+            <div className="driver-subtags" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
               <span className="driver-id-pill">{activeDriver.driver_id}</span>
+              <AvailabilityBadge status={activeDriver.availability || detail.availability || 'Available'} />
               <span className="experience-pill">{experienceYears} Yrs Exp</span>
               <span className={`risk-pill ${getRiskBadgeClass(riskLevel)}`}>{riskLevel}</span>
             </div>

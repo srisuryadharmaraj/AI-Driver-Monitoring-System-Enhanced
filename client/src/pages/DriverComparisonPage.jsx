@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import TopBar from '../components/TopBar'
 import SkillRadarChart from '../components/SkillRadarChart'
 import DriverAvatar from '../components/DriverAvatar'
+import AvailabilityBadge from '../components/AvailabilityBadge'
 import { Users, Award, Shield, CheckCircle, ArrowRightLeft, Cpu } from 'lucide-react'
 
 export default function DriverComparisonPage() {
@@ -9,19 +10,43 @@ export default function DriverComparisonPage() {
   const [selectedIds, setSelectedIds] = useState([])
   const [comparison, setComparison] = useState([])
   const [loading, setLoading] = useState(true)
+  const [filterAvailableOnly, setFilterAvailableOnly] = useState(true)
 
   useEffect(() => {
     fetch('/api/drivers')
       .then(r => r.json())
       .then(data => {
-        setAllDrivers(data || [])
-        if (data && data.length >= 2) {
-          const defaultPair = [data[0].driver_id, data[1].driver_id]
-          setSelectedIds(defaultPair)
+        const driversList = data || []
+        setAllDrivers(driversList)
+        
+        const availableDrivers = driversList.filter(d => (d.availability || 'Available') === 'Available')
+        const initialList = availableDrivers.length >= 2 ? availableDrivers : driversList
+        if (initialList.length >= 2) {
+          setSelectedIds([initialList[0].driver_id, initialList[1].driver_id])
         }
         setLoading(false)
       })
   }, [])
+
+  const displayedDrivers = filterAvailableOnly 
+    ? allDrivers.filter(d => (d.availability || 'Available') === 'Available')
+    : allDrivers
+
+  // Sync selectedIds when availability filter changes if selected drivers are filtered out
+  useEffect(() => {
+    if (!filterAvailableOnly || displayedDrivers.length === 0) return
+    const validSelected = selectedIds.filter(id => displayedDrivers.some(d => d.driver_id === id))
+    if (validSelected.length < 2) {
+      const candidates = displayedDrivers.map(d => d.driver_id)
+      if (candidates.length >= 2) {
+        setSelectedIds(candidates.slice(0, Math.min(4, candidates.length)))
+      } else if (candidates.length === 1) {
+        setSelectedIds(candidates)
+      }
+    } else if (validSelected.length !== selectedIds.length) {
+      setSelectedIds(validSelected)
+    }
+  }, [filterAvailableOnly, allDrivers])
 
   useEffect(() => {
     if (selectedIds.length < 2) return
@@ -49,24 +74,45 @@ export default function DriverComparisonPage() {
         subtitle="Side-by-Side Telemetry Benchmark & Multi-Driver Skill Matrix (Select 2–4 Drivers)"
       />
 
-      {/* Driver Selection Controls */}
+      {/* Driver Selection & Availability Controls */}
       <div className="card mb-4" style={{ padding: '1rem 1.25rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.78rem', fontWeight: 700, color: 'var(--accent-secondary)' }}>
-          <ArrowRightLeft size={16} /> SELECT FLEET DRIVERS TO BENCHMARK:
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontFamily: 'var(--font-mono)', fontSize: '0.78rem', fontWeight: 700, color: 'var(--accent-secondary)' }}>
+            <ArrowRightLeft size={16} /> SELECT FLEET DRIVERS TO BENCHMARK:
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-secondary)', padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Availability:</span>
+            <button 
+              className={`preset-pill ${filterAvailableOnly ? 'active' : ''}`}
+              onClick={() => setFilterAvailableOnly(true)}
+              style={{ height: 28, padding: '0.2rem 0.65rem', fontSize: '0.72rem' }}
+            >
+              Available Drivers Only
+            </button>
+            <button 
+              className={`preset-pill ${!filterAvailableOnly ? 'active' : ''}`}
+              onClick={() => setFilterAvailableOnly(false)}
+              style={{ height: 28, padding: '0.2rem 0.65rem', fontSize: '0.72rem' }}
+            >
+              All Drivers
+            </button>
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {allDrivers.map(d => {
+          {displayedDrivers.map(d => {
             const active = selectedIds.includes(d.driver_id)
             return (
               <button 
                 key={d.driver_id} 
                 className={`preset-pill ${active ? 'active' : ''}`}
                 onClick={() => toggleSelect(d.driver_id)}
-                style={{ height: 36, padding: '0.4rem 0.85rem' }}
+                style={{ height: 36, padding: '0.4rem 0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
               >
-                {active && <CheckCircle size={14} style={{ marginRight: '0.35rem' }} />}
+                {active && <CheckCircle size={14} />}
                 <span>{d.full_name} ({d.driver_id})</span>
+                <AvailabilityBadge status={d.availability || 'Available'} style={{ transform: 'scale(0.85)', transformOrigin: 'left center' }} />
               </button>
             )
           })}
@@ -93,9 +139,12 @@ export default function DriverComparisonPage() {
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
                     {drv.driver_id} • {drv.years_of_experience} yrs exp
                   </p>
-                  <span className="skill-badge" style={{ marginTop: '0.4rem' }}>
-                    <Award size={13} /> {twin.skill_level || 'Advanced'}
-                  </span>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.4rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                    <span className="skill-badge">
+                      <Award size={13} /> {twin.skill_level || 'Advanced'}
+                    </span>
+                    <AvailabilityBadge status={drv.availability || 'Available'} />
+                  </div>
                 </div>
 
                 <div style={{ textAlign: 'center', padding: '0.85rem', background: 'var(--bg-secondary)', borderRadius: 8, border: '1px solid var(--border)' }}>

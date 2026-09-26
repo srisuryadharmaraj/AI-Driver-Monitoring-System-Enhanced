@@ -170,7 +170,7 @@ export default function DriverProfilePage() {
         </div>
       )}
 
-      {/* AI Insights & Passport Action */}
+      {/* AI Insights & Profile Action */}
       <div className="profile-insights-row" style={{ marginTop: '1.5rem' }}>
         <div className="insight-box">
           <h4 style={{ color: 'var(--safe)' }}><CheckCircle2 size={18} /> DEMONSTRATED STRENGTHS</h4>
@@ -192,8 +192,8 @@ export default function DriverProfilePage() {
       </div>
 
       <div style={{ marginTop: '1.5rem', textAlign: 'right' }}>
-        <button className="btn btn-primary" onClick={() => navigate(`/passport?driver_id=${driver.driver_id}`)}>
-          <FileText size={18} /> View Verified Driver Skill Passport
+        <button className="btn btn-primary" onClick={() => navigate(`/profile?driver_id=${driver.driver_id}`)}>
+          <FileText size={18} /> View Verified Driver Profile
         </button>
       </div>
     </div>

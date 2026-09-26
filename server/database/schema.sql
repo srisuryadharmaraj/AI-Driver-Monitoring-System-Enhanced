@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS drivers (
     licence_expiry TEXT,
     years_of_experience INTEGER DEFAULT 1,
     joining_date TEXT,
-    current_status TEXT DEFAULT 'Active'
+    current_status TEXT DEFAULT 'Active',
+    availability TEXT DEFAULT 'Available'
 );
 
 CREATE TABLE IF NOT EXISTS journeys (

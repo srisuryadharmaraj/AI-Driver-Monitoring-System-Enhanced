@@ -21,7 +21,8 @@ DEMO_DRIVERS = [
         "licence_expiry": "2029-05-15",
         "years_of_experience": 9,
         "joining_date": "2022-01-10",
-        "current_status": "Active"
+        "current_status": "Active",
+        "availability": "Available"
     },
     {
         "driver_id": "DRV-1002",
@@ -35,7 +36,8 @@ DEMO_DRIVERS = [
         "licence_expiry": "2031-08-20",
         "years_of_experience": 6,
         "joining_date": "2023-03-15",
-        "current_status": "Active"
+        "current_status": "Active",
+        "availability": "Busy"
     },
     {
         "driver_id": "DRV-1003",
@@ -49,7 +51,8 @@ DEMO_DRIVERS = [
         "licence_expiry": "2027-11-30",
         "years_of_experience": 14,
         "joining_date": "2020-08-01",
-        "current_status": "Active"
+        "current_status": "Active",
+        "availability": "On Leave"
     },
     {
         "driver_id": "DRV-1004",
@@ -63,7 +66,8 @@ DEMO_DRIVERS = [
         "licence_expiry": "2030-02-14",
         "years_of_experience": 7,
         "joining_date": "2021-11-20",
-        "current_status": "Active"
+        "current_status": "Active",
+        "availability": "Available"
     }
 ]
 
@@ -172,12 +176,12 @@ def seed_database():
             INSERT INTO drivers (
                 driver_id, full_name, profile_photo, age, phone, email,
                 licence_number, licence_type, licence_expiry, years_of_experience,
-                joining_date, current_status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                joining_date, current_status, availability
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             d["driver_id"], d["full_name"], d["profile_photo"], d["age"], d["phone"], d["email"],
             d["licence_number"], d["licence_type"], d["licence_expiry"], d["years_of_experience"],
-            d["joining_date"], d["current_status"]
+            d["joining_date"], d["current_status"], d.get("availability", "Available")
         ))
 
     for j in DEMO_JOURNEYS:

@@ -1,7 +1,7 @@
 """
 Fatigue Detection Model Evaluator.
 Executes legitimate evaluation of FatigueDetector on dataset frames.
-Evaluates both Frame-Level Eye Closure (EAR < 0.25) and Sequential Fatigue Alarm (Consecutive Frames >= 15).
+Evaluates both Frame-Level Eye Closure (EAR < 0.29) and Sequential Fatigue Alarm (Consecutive Frames >= 15).
 """
 
 from __future__ import annotations

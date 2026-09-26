@@ -115,10 +115,14 @@ export default function AnalyticsPage() {
               <div style={{ width: '100%', height: 230, marginTop: '1.25rem' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={scoreTrendData}>
-                    <XAxis dataKey="week" stroke="#536375" tick={{ fontSize: 11, fill: '#8c9ba8', fontFamily: 'var(--font-mono)' }} />
-                    <YAxis domain={[60, 100]} stroke="#536375" tick={{ fontSize: 11, fill: '#8c9ba8', fontFamily: 'var(--font-mono)' }} />
-                    <Tooltip contentStyle={{ background: '#0f141f', border: '1px solid rgba(0, 102, 255, 0.4)', borderRadius: 6, color: '#f0f4f8', fontFamily: 'var(--font-mono)' }} />
-                    <Line type="monotone" dataKey="score" stroke="#00f0ff" strokeWidth={3} dot={{ r: 5, fill: '#0066ff' }} />
+                    <XAxis dataKey="week" stroke="#64748b" tick={{ fontSize: 11, fill: '#cbd5e1', fontFamily: 'var(--font-mono)' }} />
+                    <YAxis domain={[60, 100]} stroke="#64748b" tick={{ fontSize: 11, fill: '#cbd5e1', fontFamily: 'var(--font-mono)' }} />
+                    <Tooltip 
+                      contentStyle={{ background: '#0f141f', border: '1px solid rgba(0, 240, 255, 0.4)', borderRadius: 6, color: '#f0f4f8', fontFamily: 'var(--font-mono)', padding: '8px 12px', boxShadow: '0 4px 20px rgba(0,0,0,0.6)' }}
+                      itemStyle={{ color: '#f0f4f8', fontSize: '0.8rem', fontFamily: 'var(--font-mono)', padding: '2px 0' }}
+                      labelStyle={{ color: '#00f0ff', fontWeight: 600, fontSize: '0.85rem', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}
+                    />
+                    <Line type="monotone" dataKey="score" name="Safety Score" stroke="#00f0ff" strokeWidth={3} dot={{ r: 5, fill: '#0066ff' }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -131,12 +135,16 @@ export default function AnalyticsPage() {
               <div style={{ width: '100%', height: 230, marginTop: '1.25rem' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={eventDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} label={{ fontSize: 11, fill: '#8c9ba8', fontFamily: 'var(--font-mono)' }}>
+                    <Pie data={eventDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} label={{ fontSize: 11, fill: '#cbd5e1', fontFamily: 'var(--font-mono)' }}>
                       {eventDistribution.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ background: '#0f141f', border: '1px solid rgba(0, 102, 255, 0.4)', borderRadius: 6, color: '#f0f4f8', fontFamily: 'var(--font-mono)' }} />
+                    <Tooltip 
+                      contentStyle={{ background: '#0f141f', border: '1px solid rgba(0, 240, 255, 0.4)', borderRadius: 6, color: '#f0f4f8', fontFamily: 'var(--font-mono)', padding: '8px 12px', boxShadow: '0 4px 20px rgba(0,0,0,0.6)' }}
+                      itemStyle={{ color: '#f0f4f8', fontSize: '0.8rem', fontFamily: 'var(--font-mono)', padding: '2px 0' }}
+                      labelStyle={{ color: '#00f0ff', fontWeight: 600, fontSize: '0.85rem', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -151,9 +159,13 @@ export default function AnalyticsPage() {
             <div style={{ width: '100%', height: 250, marginTop: '1.25rem' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={driverScores}>
-                  <XAxis dataKey="name" stroke="#536375" tick={{ fontSize: 11, fill: '#8c9ba8', fontFamily: 'var(--font-mono)' }} />
-                  <YAxis domain={[0, 100]} stroke="#536375" tick={{ fontSize: 11, fill: '#8c9ba8', fontFamily: 'var(--font-mono)' }} />
-                  <Tooltip contentStyle={{ background: '#0f141f', border: '1px solid rgba(0, 102, 255, 0.4)', borderRadius: 6, color: '#f0f4f8', fontFamily: 'var(--font-mono)' }} />
+                  <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 11, fill: '#cbd5e1', fontFamily: 'var(--font-mono)' }} />
+                  <YAxis domain={[0, 100]} stroke="#64748b" tick={{ fontSize: 11, fill: '#cbd5e1', fontFamily: 'var(--font-mono)' }} />
+                  <Tooltip 
+                    contentStyle={{ background: '#0f141f', border: '1px solid rgba(0, 240, 255, 0.4)', borderRadius: 6, color: '#f0f4f8', fontFamily: 'var(--font-mono)', padding: '8px 12px', boxShadow: '0 4px 20px rgba(0,0,0,0.6)' }}
+                    itemStyle={{ color: '#f0f4f8', fontSize: '0.8rem', fontFamily: 'var(--font-mono)', padding: '2px 0' }}
+                    labelStyle={{ color: '#00f0ff', fontWeight: 600, fontSize: '0.85rem', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}
+                  />
                   <Bar dataKey="score" fill="#0066ff" name="Safety Score" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="attention" fill="#00e676" name="Attention Score" radius={[4, 4, 0, 0]} />
                 </BarChart>

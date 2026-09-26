@@ -29,6 +29,7 @@ class DriverCreate(BaseModel):
     years_of_experience: Optional[int] = 1
     profile_photo: Optional[str] = ""
     current_status: Optional[str] = "Active"
+    availability: Optional[str] = "Available"
 
 class DriverUpdate(BaseModel):
     full_name: Optional[str] = None
@@ -40,6 +41,7 @@ class DriverUpdate(BaseModel):
     years_of_experience: Optional[int] = None
     current_status: Optional[str] = None
     profile_photo: Optional[str] = None
+    availability: Optional[str] = None
 
 @router.get("")
 def list_drivers():
@@ -49,6 +51,8 @@ def list_drivers():
     for d in drivers:
         twin = DigitalTwinService.get_or_create_twin(d["driver_id"])
         item = dict(d)
+        if not item.get("availability"):
+            item["availability"] = "Available"
         item["digital_twin"] = twin
         res.append(item)
     return res
@@ -100,6 +104,8 @@ def get_driver(driver_id: str, start_date: Optional[str] = None, end_date: Optio
         performance = "Critical Action Required"
 
     res = dict(driver)
+    if not res.get("availability"):
+        res["availability"] = "Available"
     res["digital_twin"] = twin
     res["journeys"] = journeys
     res["telemetry_summary"] = {
@@ -128,12 +134,12 @@ def create_driver(driver: DriverCreate):
         INSERT INTO drivers (
             driver_id, full_name, profile_photo, age, phone, email,
             licence_number, licence_type, licence_expiry, years_of_experience,
-            joining_date, current_status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, date('now'), ?)
+            joining_date, current_status, availability
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, date('now'), ?, ?)
     """, (
         driver_id, driver.full_name, photo, driver.age, driver.phone, driver.email,
         driver.licence_number, driver.licence_type, driver.licence_expiry, driver.years_of_experience,
-        driver.current_status
+        driver.current_status, driver.availability or "Available"
     ))
     
     if not success:

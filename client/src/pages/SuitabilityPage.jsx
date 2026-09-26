@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import TopBar from '../components/TopBar'
 import ActiveDriverSelector from '../components/ActiveDriverSelector'
 import DriverAvatar from '../components/DriverAvatar'
+import AvailabilityBadge from '../components/AvailabilityBadge'
 import { useDriver } from '../context/DriverContext'
 import { Briefcase, ShieldCheck, AlertCircle, Award, CheckCircle2, FileText, Cpu, ShieldAlert } from 'lucide-react'
 
@@ -9,6 +10,7 @@ export default function SuitabilityPage() {
   const { activeDriverId, activeDriver, activeDriverDetail } = useDriver()
   const [suitability, setSuitability] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [filterAvailableOnly, setFilterAvailableOnly] = useState(true)
 
   useEffect(() => {
     if (!activeDriverId) return
@@ -37,7 +39,25 @@ export default function SuitabilityPage() {
         subtitle="Fleet Recruitment Decision-Support System & Candidate Safety Evaluation"
       />
 
-      <ActiveDriverSelector showDateFilter={true} className="mb-4" />
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '0.75rem', gap: '0.5rem' }}>
+        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Recruitment Eligibility:</span>
+        <button 
+          className={`preset-pill ${filterAvailableOnly ? 'active' : ''}`}
+          onClick={() => setFilterAvailableOnly(true)}
+          style={{ height: 28, padding: '0.2rem 0.65rem', fontSize: '0.72rem' }}
+        >
+          Available Drivers Only
+        </button>
+        <button 
+          className={`preset-pill ${!filterAvailableOnly ? 'active' : ''}`}
+          onClick={() => setFilterAvailableOnly(false)}
+          style={{ height: 28, padding: '0.2rem 0.65rem', fontSize: '0.72rem' }}
+        >
+          All Drivers
+        </button>
+      </div>
+
+      <ActiveDriverSelector showDateFilter={true} filterAvailableOnly={filterAvailableOnly} className="mb-4" />
 
       {loading || !suitability ? (
         <div className="loading-container" style={{ padding: '4rem', textAlign: 'center' }}>
@@ -52,10 +72,11 @@ export default function SuitabilityPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
               <DriverAvatar driver={activeDriverDetail || activeDriver} size={68} editable={true} />
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
                   <span className={`badge ${getBadgeClass(suitability.recommendation_level)}`}>
                     {suitability.recommendation_level?.toUpperCase()}
                   </span>
+                  <AvailabilityBadge status={activeDriverDetail?.availability || activeDriver?.availability || 'Available'} />
                   <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-secondary)' }}>
                     CANDIDATE RECRUITMENT EVALUATION
                   </span>

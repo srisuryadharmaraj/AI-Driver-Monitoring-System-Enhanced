@@ -420,7 +420,7 @@ export default function ModelEvaluationPage() {
 
                 {/* Evaluation Methodology Note */}
                 <div style={{ padding: '0.85rem 1rem', background: 'var(--bg-secondary)', borderRadius: 6, border: '1px solid var(--border)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                  <strong style={{ color: '#ffffff' }}>Evaluation Methodology:</strong> Tested against 168 ground-truth image frames (Alert: 29, Drowsy: 139) using 68-point dlib facial landmarks with Eye Aspect Ratio threshold (EAR &lt; 0.25).
+                  <strong style={{ color: '#ffffff' }}>Evaluation Methodology:</strong> Tested against 168 ground-truth image frames (Alert: 29, Drowsy: 139) using 68-point dlib facial landmarks with Eye Aspect Ratio threshold (EAR &lt; 0.29).
                 </div>
               </div>
             </div>
@@ -469,7 +469,7 @@ export default function ModelEvaluationPage() {
                 </div>
 
                 <div style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: 8, border: '1px solid var(--border)', marginBottom: '1.25rem', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                  <strong style={{ color: 'var(--warning)' }}>Strict Ground-Truth Protection:</strong> Independent ground-truth annotations are required before empirical accuracy metrics can be reported.
+                  <strong style={{ color: 'var(--warning)' }}>Strict Ground-Truth Protection:</strong> Empirical validation requires independent distraction annotations. Runtime detection is operationally available, but empirical accuracy is not currently reported.
                 </div>
 
                 {/* Annotation Requirements & Threshold Strip */}

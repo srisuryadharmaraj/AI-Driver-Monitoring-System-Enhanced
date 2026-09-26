@@ -25,8 +25,16 @@ def init_db():
             conn.executescript(schema_sql)
             conn.commit()
 
-        # Backward-compatible migration check for safety_events table columns
+        # Backward-compatible migration check for drivers table columns
         cur = conn.cursor()
+        cur.execute("PRAGMA table_info(drivers)")
+        driver_cols = {row[1] for row in cur.fetchall()}
+        if "availability" not in driver_cols:
+            cur.execute("ALTER TABLE drivers ADD COLUMN availability TEXT DEFAULT 'Available'")
+            cur.execute("UPDATE drivers SET availability = 'Available' WHERE availability IS NULL OR availability = ''")
+        conn.commit()
+
+        # Backward-compatible migration check for safety_events table columns
         cur.execute("PRAGMA table_info(safety_events)")
         rows = cur.fetchall()
         cols = {row[1] for row in rows}

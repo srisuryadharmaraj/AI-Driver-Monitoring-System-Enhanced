@@ -2,6 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Award, Shield, Eye, AlertTriangle, Route } from 'lucide-react'
 import DriverAvatar from './DriverAvatar'
+import AvailabilityBadge from './AvailabilityBadge'
 
 export default function DriverCard({ driver }) {
   const navigate = useNavigate()
@@ -49,11 +50,12 @@ export default function DriverCard({ driver }) {
         </div>
       </div>
 
-      <div className="driver-card-badge-row">
+      <div className="driver-card-badge-row" style={{ flexWrap: 'wrap', gap: '0.35rem' }}>
         <span className="skill-badge">
           <Award size={12} />
           {skillLevel}
         </span>
+        <AvailabilityBadge status={driver.availability || 'Available'} />
         <span className={`driver-id-pill ${riskInfo.cls}`}>
           {riskInfo.label}
         </span>

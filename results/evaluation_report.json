@@ -1,6 +1,6 @@
 {
   "evaluation_metadata": {
-    "evaluation_date": "2026-08-25 22:53:27",
+    "evaluation_date": "2026-09-15 17:19:01",
     "dataset_name": "AI Driver Monitoring Test Frames Dataset",
     "total_dataset_files": 168,
     "valid_samples": 168,
@@ -33,60 +33,60 @@
       "driver_no_sleep": 29
     },
     "frame_level_eye_closure": {
-      "tp": 92,
-      "tn": 27,
-      "fp": 2,
-      "fn": 47,
-      "accuracy": 0.7083,
-      "precision": 0.9787,
-      "recall": 0.6619,
-      "specificity": 0.931,
-      "f1_score": 0.7897,
-      "balanced_accuracy": 0.7965,
-      "confusion_matrix": [
-        [
-          27,
-          2
-        ],
-        [
-          47,
-          92
-        ]
-      ]
-    },
-    "sequential_fatigue_alarm": {
-      "tp": 2,
+      "tp": 123,
       "tn": 29,
       "fp": 0,
-      "fn": 137,
-      "accuracy": 0.1845,
+      "fn": 16,
+      "accuracy": 0.9048,
       "precision": 1.0,
-      "recall": 0.0144,
+      "recall": 0.8849,
       "specificity": 1.0,
-      "f1_score": 0.0284,
-      "balanced_accuracy": 0.5072,
+      "f1_score": 0.9389,
+      "balanced_accuracy": 0.9425,
       "confusion_matrix": [
         [
           29,
           0
         ],
         [
-          137,
-          2
+          16,
+          123
         ]
       ]
     },
-    "avg_inference_ms": 37.88,
-    "approx_fps": 26.4,
-    "ear_threshold_used": 0.25,
+    "sequential_fatigue_alarm": {
+      "tp": 53,
+      "tn": 29,
+      "fp": 0,
+      "fn": 86,
+      "accuracy": 0.4881,
+      "precision": 1.0,
+      "recall": 0.3813,
+      "specificity": 1.0,
+      "f1_score": 0.5521,
+      "balanced_accuracy": 0.6906,
+      "confusion_matrix": [
+        [
+          29,
+          0
+        ],
+        [
+          86,
+          53
+        ]
+      ]
+    },
+    "avg_inference_ms": 41.18,
+    "approx_fps": 24.28,
+    "ear_threshold_used": 0.283,
     "consec_frames_thresh_used": 15,
     "per_category_detection_rate": {
-      "driver_full_sleep2": 0.7308,
-      "driver_full_sleep3": 0.6071,
-      "driver_full_sleep4": 0.6786,
-      "driver_full_sleep": 0.5172,
-      "driver_microsleep2": 0.7857,
-      "driver_no_sleep": 0.069
+      "driver_full_sleep2": 0.9231,
+      "driver_full_sleep3": 1.0,
+      "driver_full_sleep4": 0.8929,
+      "driver_full_sleep": 0.6207,
+      "driver_microsleep2": 1.0,
+      "driver_no_sleep": 0.0
     }
   },
   "distraction_evaluation": {
@@ -102,7 +102,11 @@
       "pose_estimator": "MediaPipe FaceLandmarker (478 Canonical 3D Landmarks)",
       "yaw_threshold_deg": 30.0,
       "pitch_threshold_deg": 25.0,
-      "gaze_ratio_threshold": 0.35
+      "gaze_ratio_threshold": 0.35,
+      "sample_frames_evaluated": 50,
+      "distraction_triggers_found": 14,
+      "avg_inference_latency_ms": 16.25,
+      "approx_throughput_fps": 61.54
     }
   },
   "obstacle_evaluation": {
@@ -116,15 +120,15 @@
     "operational_stats": {
       "model_name": "YOLOv8 Nano (yolov8n.pt)",
       "sample_frames_evaluated": 50,
-      "total_detections_found": 80,
-      "avg_detections_per_frame": 1.6,
-      "avg_confidence_score": 0.642,
+      "total_detections_found": 83,
+      "avg_detections_per_frame": 1.66,
+      "avg_confidence_score": 0.639,
       "detected_class_breakdown": {
-        "person": 41,
-        "car": 39
+        "person": 43,
+        "car": 40
       },
-      "avg_inference_latency_ms": 72.26,
-      "approx_throughput_fps": 13.84
+      "avg_inference_latency_ms": 130.81,
+      "approx_throughput_fps": 7.64
     }
   },
   "lane_evaluation": {
@@ -139,7 +143,7 @@
       "mean_absolute_center_offset_px": 1.48,
       "center_offset_variance": 132.86,
       "avg_processing_latency_ms": 2.97,
-      "approx_throughput_fps": 337.08
+      "approx_throughput_fps": 336.96
     }
   }
 }

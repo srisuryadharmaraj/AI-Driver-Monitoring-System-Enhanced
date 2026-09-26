@@ -1624,7 +1624,39 @@ select:focus {
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   PRINT STYLES FOR EXPORTING PASSPORT & AI COACH REPORTS
+   RECHARTS COCKPIT TOOLTIP & CHART VISIBILITY OVERRIDES
+   ─────────────────────────────────────────────────────────────────────────── */
+.recharts-default-tooltip {
+  background-color: #0f141f !important;
+  border: 1px solid rgba(0, 240, 255, 0.4) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
+  padding: 8px 12px !important;
+}
+
+.recharts-tooltip-label {
+  color: #00f0ff !important;
+  font-family: var(--font-mono) !important;
+  font-weight: 600 !important;
+  font-size: 0.82rem !important;
+  margin-bottom: 4px !important;
+}
+
+.recharts-tooltip-item {
+  color: #f0f4f8 !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.8rem !important;
+  padding: 2px 0 !important;
+}
+
+.recharts-tooltip-item-name,
+.recharts-tooltip-item-value,
+.recharts-tooltip-item-separator {
+  color: #f0f4f8 !important;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   PRINT STYLES FOR EXPORTING PROFILE & AI COACH REPORTS
    ─────────────────────────────────────────────────────────────────────────── */
 
 @media print {
@@ -1650,6 +1682,7 @@ select:focus {
     padding: 0 !important;
   }
 
+  .profile-credential-card,
   .passport-credential-card,
   .card,
   .command-panel {

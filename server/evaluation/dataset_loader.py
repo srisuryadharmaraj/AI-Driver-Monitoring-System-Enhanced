@@ -46,7 +46,15 @@ class DatasetLoader:
         if not self.dataset_dir.exists():
             raise FileNotFoundError(f"Dataset directory not found: {self.dataset_dir}")
 
-        files = sorted([f for f in os.listdir(self.dataset_dir) if f.lower().endswith((".jpg", ".png", ".jpeg"))])
+        import re
+
+        def natural_sort_key(s: str):
+            return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
+
+        files = sorted(
+            [f for f in os.listdir(self.dataset_dir) if f.lower().endswith((".jpg", ".png", ".jpeg"))],
+            key=natural_sort_key,
+        )
         frames: List[DatasetFrame] = []
         category_counts: dict = {}
         class_distribution: dict = {0: 0, 1: 0}

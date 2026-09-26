@@ -74,7 +74,7 @@ export default function App() {
     {
       section: 'REPORTS & RESEARCH',
       items: [
-        { path: '/passport', label: 'Skill Passport', icon: <FileText size={18} /> },
+        { path: '/profile', label: 'Driver Profile', icon: <FileText size={18} /> },
         { path: '/evaluation', label: 'Model Evaluation', icon: <FlaskConical size={18} /> },
       ]
     }
@@ -193,7 +193,7 @@ export default function App() {
             <Route path="/fleet" element={<FleetDashboardPage />} />
             <Route path="/comparison" element={<DriverComparisonPage />} />
             <Route path="/suitability" element={<SuitabilityPage />} />
-            <Route path="/passport" element={<DriverPassportPage />} />
+            <Route path="/profile" element={<DriverPassportPage />} />
             <Route path="/evaluation" element={<ModelEvaluationPage />} />
             <Route path="/incidents" element={<IncidentManagementPage />} />
           </Routes>

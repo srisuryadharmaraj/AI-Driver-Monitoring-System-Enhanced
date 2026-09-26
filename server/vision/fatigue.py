@@ -17,7 +17,8 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 # ── Constants ────────────────────────────────────────────────────────────────
-EAR_THRESHOLD: float = 0.25          # Below this → eyes considered closed
+EAR_THRESHOLD: float = 0.283         # Below this → eyes considered closed
+EMA_ALPHA: float = 0.16              # Temporal EMA smoothing weight
 CONSEC_FRAMES_THRESH: int = 15       # Consecutive closed-eye frames → fatigue
 
 # Landmark indices for eyes
@@ -54,9 +55,11 @@ class FatigueDetector:
         predictor_path: str | Path = "models/shape_predictor_68_face_landmarks.dat",
         ear_threshold: float = EAR_THRESHOLD,
         consec_frames: int = CONSEC_FRAMES_THRESH,
+        ema_alpha: float = EMA_ALPHA,
     ) -> None:
         self.ear_threshold = ear_threshold
         self.consec_thresh = consec_frames
+        self.ema_alpha = ema_alpha
 
         # dlib face detector + landmark predictor
         self.detector = dlib.get_frontal_face_detector()
@@ -64,28 +67,53 @@ class FatigueDetector:
 
         # Internal state
         self._consec_count: int = 0
+        self._last_face_rect: Optional[dlib.rectangle] = None
+        self._ema_ear: Optional[float] = None
 
     # ── Public API ───────────────────────────────────────────────────────────
     def process(self, frame: np.ndarray) -> FatigueResult:
         """Analyse a single BGR frame and return a `FatigueResult`."""
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        
+        # 1. Primary face detection
         faces = self.detector(gray, 0)
-
-        result = FatigueResult()
-
+        
+        # 2. Multi-scale fallback if scale 0 finds no face
         if len(faces) == 0:
-            # No face → keep counter but not increment
+            faces = self.detector(gray, 1)
+
+        face_rect: Optional[dlib.rectangle] = None
+
+        if len(faces) > 0:
+            # Multi-face handling: select largest bounding box by area
+            face_rect = sorted(faces, key=lambda r: r.width() * r.height(), reverse=True)[0]
+            self._last_face_rect = face_rect
+        elif self._last_face_rect is not None:
+            # Face ROI persistence / tracking fallback for transient detection drops
+            face_rect = self._last_face_rect
+
+        if face_rect is None:
+            # No face detected & no tracking ROI available
+            result = FatigueResult()
             result.consec_frames = self._consec_count
             return result
 
-        # Use first (closest) face
-        shape = self.predictor(gray, faces[0])
+        # Extract landmarks and compute EAR
+        shape = self.predictor(gray, face_rect)
         shape = face_utils.shape_to_np(shape)
 
         left_eye = shape[_L_START:_L_END]
         right_eye = shape[_R_START:_R_END]
 
-        ear = (_ear(left_eye) + _ear(right_eye)) / 2.0
+        raw_ear = (_ear(left_eye) + _ear(right_eye)) / 2.0
+
+        # Temporal EMA smoothing
+        if self._ema_ear is None:
+            self._ema_ear = raw_ear
+        else:
+            self._ema_ear = self.ema_alpha * raw_ear + (1.0 - self.ema_alpha) * self._ema_ear
+
+        ear = self._ema_ear
 
         if ear < self.ear_threshold:
             self._consec_count += 1
@@ -103,8 +131,10 @@ class FatigueDetector:
         )
 
     def reset(self) -> None:
-        """Reset consecutive-frame counter (e.g. between videos)."""
+        """Reset consecutive-frame counter and tracking state (e.g. between videos)."""
         self._consec_count = 0
+        self._last_face_rect = None
+        self._ema_ear = None
 
     # ── Drawing Utility ──────────────────────────────────────────────────────
     @staticmethod

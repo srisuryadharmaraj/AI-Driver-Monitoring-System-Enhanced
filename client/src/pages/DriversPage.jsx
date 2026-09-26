@@ -18,6 +18,7 @@ export default function DriversPage() {
     licence_number: '',
     licence_type: 'Commercial (LMV)',
     years_of_experience: 5,
+    availability: 'Available'
   })
   const [msg, setMsg] = useState('')
 
@@ -58,6 +59,7 @@ export default function DriversPage() {
             licence_number: '',
             licence_type: 'Commercial (LMV)',
             years_of_experience: 5,
+            availability: 'Available'
           })
           fetchDrivers()
           if (refreshDrivers) refreshDrivers()
@@ -162,8 +164,12 @@ export default function DriversPage() {
                   <input required type="text" value={formData.licence_number} onChange={e => setFormData({ ...formData, licence_number: e.target.value })} placeholder="DL-1420230012345" style={{ width: '100%' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>LICENCE TYPE</label>
-                  <input type="text" value={formData.licence_type} onChange={e => setFormData({ ...formData, licence_type: e.target.value })} style={{ width: '100%' }} />
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>AVAILABILITY STATUS</label>
+                  <select value={formData.availability} onChange={e => setFormData({ ...formData, availability: e.target.value })} style={{ width: '100%', height: 38, background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 6, color: '#fff', padding: '0 0.5rem' }}>
+                    <option value="Available">🟢 Available</option>
+                    <option value="Busy">🔴 Busy</option>
+                    <option value="On Leave">🟡 On Leave</option>
+                  </select>
                 </div>
               </div>
 
